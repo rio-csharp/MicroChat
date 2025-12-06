@@ -1,0 +1,60 @@
+﻿<!-- SidebarComponent.razor -->
+@using System.Globalization
+
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        MicroChat
+    </div>
+    <div class="chat-list">
+        @foreach (var chat in Chats)
+        {
+            <div class="chat-item">
+                <div class="icon">
+                    @* 这里用简单SVG做大模型图标示意 *@
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="#666" stroke-width="2" />
+                        <path d="M8 12h8M12 8v8" stroke="#666" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div class="chat-info">
+                    <div class="chat-title">@chat.Title</div>
+                    <div class="chat-latest">@chat.LatestMessage</div>
+                </div>
+                <div class="chat-time" title="@chat.LastMessageTime.ToString("f", CultureInfo.CurrentCulture)">
+                    @chat.LastMessageTime.ToString("HH:mm")
+                </div>
+            </div>
+        }
+    </div>
+    <button class="new-chat-button" @onclick="CreateNewChat">＋ 新建聊天</button>
+</div>
+
+@code {
+    // 示例聊天数据模型
+    class ChatItem
+    {
+        public string Title { get; set; }
+        public string LatestMessage { get; set; }
+        public DateTime LastMessageTime { get; set; }
+    }
+
+    // 示例聊天列表，为了演示效果写死一组
+    private List<ChatItem> Chats = new List<ChatItem>()
+    {
+        new ChatItem { Title = "大模型A", LatestMessage = "这是最新消息的一部分，可能很长需要省略", LastMessageTime = DateTime.Now.AddMinutes(-5) },
+        new ChatItem { Title = "大模型B", LatestMessage = "简短消息", LastMessageTime = DateTime.Now.AddMinutes(-120) },
+        new ChatItem { Title = "大模型C", LatestMessage = "另一条很长的消息，看看省略效果如何", LastMessageTime = DateTime.Now.AddDays(-1) },
+    };
+
+    private void CreateNewChat()
+    {
+        // 新建聊天示例
+        var newChat = new ChatItem
+        {
+            Title = $"大模型{(char)('A' + Chats.Count)}",
+            LatestMessage = "新聊天已创建",
+            LastMessageTime = DateTime.Now
+        };
+        Chats.Insert(0, newChat);
+    }
+}
