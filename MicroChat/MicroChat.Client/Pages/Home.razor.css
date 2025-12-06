@@ -5,7 +5,14 @@
 
 .content {
     flex: 1; /* 占满剩余空间 */
-    padding: 16px;
     background-color: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-area {
+    flex: 1;
+    padding: 16px;
     overflow: auto;
 }

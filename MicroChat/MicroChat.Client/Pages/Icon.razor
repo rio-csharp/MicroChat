@@ -1,0 +1,24 @@
+﻿@code {
+    [Parameter] public string IconSlug { get; set; }
+    [Parameter] public string Format { get; set; } = "svg"; // svg, png, webp
+    [Parameter] public int Height { get; set; } = 32;
+}
+
+@if (Format == "svg")
+{
+    <img height="@Height" src=@($"https://unpkg.com/@lobehub/icons-static-svg@latest/icons/{IconSlug}.svg") alt="@IconSlug" />
+}
+else if (Format == "png")
+{
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset=@($"https://unpkg.com/@lobehub/icons-static-png@latest/dark/{IconSlug}.png") />
+        <img height="@Height" src=@($"https://unpkg.com/@lobehub/icons-static-png@latest/light/{IconSlug}.png") alt="@IconSlug" />
+    </picture>
+}
+else if (Format == "webp")
+{
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset=@($"https://unpkg.com/@lobehub/icons-static-webp@latest/dark/{IconSlug}.webp") />
+        <img height="@Height" src=@($"https://unpkg.com/@lobehub/icons-static-webp@latest/light/{IconSlug}.webp") alt="@IconSlug" />
+    </picture>
+}
