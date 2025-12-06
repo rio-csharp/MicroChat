@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MicroChat/MicroChat.Client/MicroChat.Client.csproj" />
+  <Project Path="MicroChat/MicroChat/MicroChat.csproj" />
+</Solution>
