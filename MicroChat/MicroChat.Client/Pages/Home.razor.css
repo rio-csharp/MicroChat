@@ -16,3 +16,38 @@
     padding: 16px;
     overflow: auto;
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .layout {
+        position: relative;
+    }
+
+    .layout .sidebar-container,
+    .layout .content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    /* 默认显示侧边栏（聊天列表） */
+    .layout .sidebar-container {
+        transform: translateX(0);
+    }
+
+    .layout .content {
+        transform: translateX(100%);
+    }
+
+    /* 点击聊天后显示内容区 */
+    .layout.show-content .sidebar-container {
+        transform: translateX(-100%);
+    }
+
+    .layout.show-content .content {
+        transform: translateX(0);
+    }
+}

@@ -1,12 +1,29 @@
 ﻿@page "/"
+@using MicroChat.Client.Models
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
-<div class="layout">
-    <Sidebar />
+<div class="layout @(ShowMobileContent ? "show-content" : "")">
+    <Sidebar OnChatSelected="HandleChatSelected" />
     <div class="content">
-        <ChatHeader />
+        <ChatHeader OnBackClicked="HandleBackToList" ShowBackButton="ShowMobileContent" />
         <div class="chat-area">
-            <h1>内容区</h1>
-            <p>这里是主要内容。</p>
+            <ChatPanel SelectedChat="selectedConversation" />
         </div>
     </div>
 </div>
+
+@code {
+    private bool ShowMobileContent = false;
+    private Conversation? selectedConversation = null;
+
+    private void HandleChatSelected(Conversation conversation)
+    {
+        selectedConversation = conversation;
+        ShowMobileContent = true;
+    }
+
+    private void HandleBackToList()
+    {
+        ShowMobileContent = false;
+    }
+}

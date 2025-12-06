@@ -9,6 +9,14 @@
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .sidebar-container {
+        width: 100%;
+        border-right: none;
+    }
+}
+
 .sidebar-header {
     font-size: 20px;
     font-weight: bold;
