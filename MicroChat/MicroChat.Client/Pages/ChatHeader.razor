@@ -22,12 +22,16 @@
     </div>
 
     <div class="header-right">
-        <select class="model-selector" @bind="SelectedModelId" @bind:after="OnModelChangedAsync">
-            @foreach (var model in Models)
-            {
-                <option value="@model">@model</option>
-            }
-        </select>
+
+        @if (ConversationService.SelectedConversation != null)
+        {
+            <select class="model-selector" @bind="SelectedModelId" @bind:after="OnModelChangedAsync">
+                @foreach (var model in Models)
+                {
+                    <option value="@model">@model</option>
+                }
+            </select>
+        }
 
         <button class="settings-button" title="设置">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

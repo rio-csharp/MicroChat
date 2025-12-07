@@ -7,7 +7,7 @@ public class AIModel
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public ModelProvider Provider => ModelProvider.GetProvider(GetModelProvider());
+    public ModelProvider? Provider => ModelProvider.GetProvider(GetModelProvider());
 
     // 聊天模型前缀映射到品牌/图标
     private readonly static Dictionary<string, ModelProviders> _models = new()

@@ -14,7 +14,7 @@
     <div class="chat-list">
         @foreach (var conversation in ConversationService.Conversations)
         {
-            <div class="chat-item" @onclick="() => SelectChat(conversation)">
+            <div class="chat-item" @onclick="async () => await SelectChatAsync(conversation.Id)">
                 <div class="icon">
                     <Icon IconSlug="@conversation.AIModel?.Provider.IconSlug" />
                 </div>
@@ -28,12 +28,12 @@
             </div>
         }
     </div>
-    <button class="new-chat-button" @onclick="CreateNewChat">＋ 新建聊天</button>
+    <button class="new-chat-button" @onclick="CreateNewChatAsync">＋ 新建聊天</button>
 </div>
 
 @code {
     [Parameter]
-    public EventCallback<Conversation> OnChatSelected { get; set; }
+    public EventCallback OnChatSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,9 +41,8 @@
         await ConversationService.LoadConversationsAsync();
         if (ConversationService.Conversations.Count == 0)
         {
-            await CreateNewChat();
+            await CreateNewChatAsync();
         }
-        SelectChat(ConversationService.Conversations[0]);
     }
 
     public void Dispose()
@@ -52,22 +51,23 @@
     }
 
 
-    private void SelectChat(Conversation conversation)
+    private async Task SelectChatAsync(Guid conversationId)
     {
-        ConversationService.SelectedConversationId = conversation.Id;
+        ConversationService.SelectedConversationId = conversationId;
+        await OnChatSelected.InvokeAsync();
     }
 
-    private async Task CreateNewChat()
+    private async Task CreateNewChatAsync()
     {
-            var models = await ModelService.GetModelsAsync();
-            var firstModel = models?.FirstOrDefault();
+        var models = await ModelService.GetModelsAsync();
+        var firstModel = models?.FirstOrDefault();
 
-            var newConversation = new Conversation
-            {
-                Id = Guid.NewGuid(),
-                Title = "新聊天",
-                AIModel = firstModel != null ? new AIModel { Name = firstModel } : null,
-                Messages = new List<Message>()
+        var newConversation = new Conversation
+        {
+            Id = Guid.NewGuid(),
+            Title = "新聊天",
+            AIModel = firstModel != null ? new AIModel { Id = firstModel, Name = firstModel } : null,
+            Messages = new List<Message>()
                 {
                     new Message
                     {
@@ -77,7 +77,7 @@
                         Sender = MessageRole.System
                     }
                 }
-            };
-            await ConversationService.AddConversationAsync(newConversation);
+        };
+        await ConversationService.AddConversationAsync(newConversation);
     }
 }

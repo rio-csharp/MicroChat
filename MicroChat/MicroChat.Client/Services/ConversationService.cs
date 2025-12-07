@@ -28,8 +28,8 @@ public class ConversationService(IndexedDbService dbService)
     {
         Conversations.Add(conversation);
         SelectedConversationId = conversation.Id;
-        await _dbService.OpenDb();
-        await _dbService.AddRecord(_conversationStore, conversation);
+        await _dbService.OpenDbAsync();
+        await _dbService.AddRecordAsync(_conversationStore, conversation);
         NotifyStateChanged();
     }
 
@@ -39,16 +39,16 @@ public class ConversationService(IndexedDbService dbService)
         if (index != -1)
         {
             Conversations[index] = conversation;
-            await _dbService.OpenDb();
-            await _dbService.UpdateRecord(_conversationStore, conversation);
+            await _dbService.OpenDbAsync();
+            await _dbService.UpdateRecordAsync(_conversationStore, conversation);
             NotifyStateChanged();
         }
     }
 
     public async Task LoadConversationsAsync()
     {
-        await _dbService.OpenDb();
-        Conversations = (await _dbService.GetRecords<Conversation>(_conversationStore)).ToList();
+        await _dbService.OpenDbAsync();
+        Conversations = (await _dbService.GetRecordsAsync<Conversation>(_conversationStore)).ToList();
         NotifyStateChanged();
     }
 
@@ -58,9 +58,9 @@ public class ConversationService(IndexedDbService dbService)
         if (conversation != null)
         {
             Conversations.Remove(conversation);
-            await _dbService.OpenDb();
+            await _dbService.OpenDbAsync();
             // Assuming a DeleteRecord method exists in IndexedDbService
-            await _dbService.DeleteRecord(_conversationStore, conversationId);
+            await _dbService.DeleteRecordAsync(_conversationStore, conversationId);
             if (SelectedConversationId == conversationId)
             {
                 SelectedConversationId = Conversations.FirstOrDefault()?.Id;
