@@ -1,12 +1,13 @@
 ﻿@using MicroChat.Client.Models
 @using MicroChat.Client.Services
 @inject ConversationService ConversationService
+@inject ChatService ChatService
 @implements IDisposable
 
 @if (ConversationService.SelectedConversation != null)
 {
     <div class="chat-panel">
-        <div class="chat-messages">
+        <div class="chat-messages" @ref="_messagesContainer">
             @foreach (var message in ConversationService.SelectedConversation.Messages)
             {
                 <div class="chat-message @(message.Sender == MessageRole.User ? "user-message" : "bot-message")">
@@ -16,6 +17,30 @@
                     </div>
                 </div>
             }
+            @if (_isStreaming && !string.IsNullOrEmpty(_streamingContent))
+            {
+                <div class="chat-message bot-message streaming">
+                    <div class="message-content">@_streamingContent</div>
+                </div>
+            }
+        </div>
+        <div class="chat-input-area">
+            <textarea @bind="_inputMessage" 
+                      @bind:event="oninput"
+                      @onkeydown="HandleKeyDown"
+                      placeholder="输入消息..."
+                      disabled="@_isStreaming"
+                      rows="3"></textarea>
+            <button @onclick="SendMessageAsync" disabled="@(_isStreaming || string.IsNullOrWhiteSpace(_inputMessage))">
+                @if (_isStreaming)
+                {
+                    <span>发送中...</span>
+                }
+                else
+                {
+                    <span>发送</span>
+                }
+            </button>
         </div>
     </div>
 }
@@ -27,13 +52,105 @@ else
 }
 
 @code {
+    private ElementReference _messagesContainer;
+    private string _inputMessage = string.Empty;
+    private bool _isStreaming = false;
+    private string _streamingContent = string.Empty;
+    private CancellationTokenSource? _cts;
+
     protected override void OnInitialized()
     {
         ConversationService.OnChange += StateHasChanged;
     }
 
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey && !_isStreaming && !string.IsNullOrWhiteSpace(_inputMessage))
+        {
+            await SendMessageAsync();
+        }
+    }
+
+    private async Task SendMessageAsync()
+    {
+        if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(_inputMessage))
+            return;
+
+        var userMessage = _inputMessage.Trim();
+        _inputMessage = string.Empty;
+        _isStreaming = true;
+        _streamingContent = string.Empty;
+        
+        // 添加用户消息
+        var userMsg = new Message
+        {
+            Sender = MessageRole.User,
+            Content = userMessage,
+            Time = DateTime.Now,
+            Model = ConversationService.SelectedConversation.AIModel
+        };
+        ConversationService.SelectedConversation.Messages.Add(userMsg);
+        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+
+        _cts = new CancellationTokenSource();
+        
+        try
+        {
+            // 流式接收 AI 回复
+            await foreach (var chunk in ChatService.SendMessageStreamAsync(
+                ConversationService.SelectedConversation, 
+                userMessage, 
+                _cts.Token))
+            {
+                _streamingContent += chunk;
+                StateHasChanged();
+            }
+
+            // 流式完成，保存消息
+            if (!string.IsNullOrEmpty(_streamingContent))
+            {
+                var assistantMsg = new Message
+                {
+                    Sender = MessageRole.Assistant,
+                    Content = _streamingContent,
+                    Time = DateTime.Now,
+                    Model = ConversationService.SelectedConversation.AIModel
+                };
+                ConversationService.SelectedConversation.Messages.Add(assistantMsg);
+                await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 用户取消了请求
+        }
+        catch (Exception ex)
+        {
+            // 显示错误消息
+            var errorMsg = new Message
+            {
+                Sender = MessageRole.Assistant,
+                Content = $"发送失败: {ex.Message}",
+                Time = DateTime.Now,
+                Model = ConversationService.SelectedConversation.AIModel
+            };
+            ConversationService.SelectedConversation.Messages.Add(errorMsg);
+            await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+        }
+        finally
+        {
+            _isStreaming = false;
+            _streamingContent = string.Empty;
+            _cts?.Dispose();
+            _cts = null;
+            StateHasChanged();
+        }
+    }
+
     public void Dispose()
     {
         ConversationService.OnChange -= StateHasChanged;
+        _cts?.Cancel();
+        _cts?.Dispose();
     }
 }

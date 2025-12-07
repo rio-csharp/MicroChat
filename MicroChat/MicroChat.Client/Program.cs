@@ -6,6 +6,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.AddScoped<IndexedDbService>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<ModelService>();
+builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 await builder.Build().RunAsync();
