@@ -20,7 +20,11 @@
 .sidebar-header {
     font-size: 20px;
     font-weight: bold;
-    padding: 16px;
+    padding: 0 16px;
+    box-sizing: border-box;
+    height: 56px;
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid #ccc;
 }
 

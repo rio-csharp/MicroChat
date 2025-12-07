@@ -5,9 +5,9 @@
 <div class="layout @(ShowMobileContent ? "show-content" : "")">
     <Sidebar OnChatSelected="HandleChatSelected" />
     <div class="content">
-        <ChatHeader OnBackClicked="HandleBackToList" ShowBackButton="ShowMobileContent" />
+        <ChatHeader OnBackClicked="HandleBackToList" ShowBackButton="ShowMobileContent" Conversation="selectedConversation" />
         <div class="chat-area">
-            <ChatPanel SelectedChat="selectedConversation" />
+            <ChatPanel Conversation="selectedConversation" />
         </div>
     </div>
 </div>

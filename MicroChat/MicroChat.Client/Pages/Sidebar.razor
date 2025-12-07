@@ -37,6 +37,11 @@
     protected override async Task OnInitializedAsync()
     {
         Conversations = await ChatService.GetConversationsAsync();
+        if(Conversations.Count == 0)
+        {
+            await CreateNewChat();
+        }
+        SelectChat(Conversations[0]);
     }
 
     private void SelectChat(Conversation chat)

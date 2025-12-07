@@ -1,10 +1,18 @@
-﻿@if (SelectedChat != null)
+﻿@using MicroChat.Client.Models
+@if (Conversation != null)
 {
     <div class="chat-panel">
-        <h2>@SelectedChat.Title</h2>
+        <h2>@Conversation.Title</h2>
         <div class="chat-messages">
-            <p>最新消息：@SelectedChat.LatestMessage</p>
-            <p>时间：@SelectedChat.LastMessageTime.ToString("yyyy-MM-dd HH:mm:ss")</p>
+            @foreach(var message in Conversation.Messages)
+            {
+                <div class="chat-message @(message.Sender == MessageRole.User ? "user-message" : "bot-message")">
+                    <div class="message-content">@message.Content</div>
+                    <div class="message-time" title="@message.Time.ToString("f", System.Globalization.CultureInfo.CurrentCulture)">
+                        @message.Time.ToString("HH:mm")
+                    </div>
+                </div>
+            }
         </div>
     </div>
 }
@@ -17,5 +25,5 @@ else
 
 @code {
     [Parameter]
-    public dynamic? SelectedChat { get; set; }
+    public Conversation? Conversation { get; set; }
 }
