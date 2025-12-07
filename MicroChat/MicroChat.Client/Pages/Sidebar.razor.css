@@ -25,6 +25,7 @@
     height: 56px;
     display: flex;
     align-items: center;
+    gap: 8px;
     border-bottom: 1px solid #ccc;
 }
 

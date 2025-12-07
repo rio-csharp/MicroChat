@@ -1,4 +1,10 @@
 ﻿@using MicroChat.Client.Models
+@using MicroChat.Client.Services
+@using System.Threading.Tasks
+@inject ConversationService ConversationService
+@inject ModelService ModelService
+@implements IDisposable
+
 <div class="chat-header">
     <div class="header-left">
         @if (ShowBackButton)
@@ -10,16 +16,16 @@
             </button>
         }
         <div class="model-icon">
-            <Icon IconSlug="@(Conversation?.AIModel?.Provider.IconSlug ?? "openai")" />
+            <Icon IconSlug="@ConversationService.SelectedConversation?.AIModel?.Provider.IconSlug" />
         </div>
-        <div class="model-title">@Conversation?.Title</div>
+        <div class="model-title">@ConversationService.SelectedConversation?.Title</div>
     </div>
 
     <div class="header-right">
-        <select class="model-selector" @bind="SelectedModelId" @bind:after="OnModelChanged">
-            @foreach (var model in AvailableModels)
+        <select class="model-selector" @bind="SelectedModelId" @bind:after="OnModelChangedAsync">
+            @foreach (var model in Models)
             {
-                <option value="@model.Id">@model.Name</option>
+                <option value="@model">@model</option>
             }
         </select>
 
@@ -37,32 +43,44 @@
     public bool ShowBackButton { get; set; } = false;
 
     [Parameter]
-    public Conversation? Conversation { get; set; }
-
-    [Parameter]
     public EventCallback OnBackClicked { get; set; }
 
-    class ModelInfo
+    private List<string> Models { get; set; } = new();
+    private string SelectedModelId { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string IconSlug { get; set; } = "";
+        var models = await ModelService.GetModelsAsync();
+        if (models != null && models.Count > 0)
+        {
+            Models = models.ToList();
+            var currentModelId = ConversationService.SelectedConversation?.AIModel?.Id;
+            
+            if (!string.IsNullOrEmpty(currentModelId) && Models.Contains(currentModelId))
+            {
+                SelectedModelId = currentModelId;
+            }
+            else
+            {
+                SelectedModelId = Models.First();
+            }
+        }
+        ConversationService.OnChange += StateHasChanged;
     }
 
-    private List<ModelInfo> AvailableModels = new()
+    public void Dispose()
     {
-        new ModelInfo { Id = "gpt-4", Name = "GPT-4", IconSlug = "openai" },
-        new ModelInfo { Id = "gpt-3.5", Name = "GPT-3.5", IconSlug = "openai" },
-        new ModelInfo { Id = "claude-3", Name = "Claude 3", IconSlug = "anthropic" },
-        new ModelInfo { Id = "gemini", Name = "Gemini", IconSlug = "google" },
-    };
+        ConversationService.OnChange -= StateHasChanged;
+    }
 
-    private string SelectedModelId = "gpt-4";
-    private ModelInfo CurrentModel => AvailableModels.FirstOrDefault(m => m.Id == SelectedModelId) ?? AvailableModels[0];
-
-    private void OnModelChanged()
+    private async Task OnModelChangedAsync()
     {
-        Console.WriteLine($"Model changed to: {CurrentModel.Name}");
+        ConversationService.SelectedConversation!.AIModel = new AIModel()
+        {
+            Id = SelectedModelId,
+            Name = SelectedModelId
+        };
+        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
     }
 
     private void HandleBackClick()

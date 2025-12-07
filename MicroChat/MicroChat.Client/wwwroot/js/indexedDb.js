@@ -48,6 +48,28 @@ export function addRecord(storeName, record) {
     });
 }
 
+// Function to update a record in a store.
+export function updateRecord(storeName, record) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject('Database is not open.');
+            return;
+        }
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.put(record); // put will update if exists, add if not
+
+        request.onsuccess = () => {
+            resolve('Record updated successfully');
+        };
+
+        request.onerror = event => {
+            console.error('Error updating record:', event.target.error);
+            reject('Failed to update record');
+        };
+    });
+}
+
 // Function to get a record by its key.
 export function getRecord(storeName, key) {
     return new Promise((resolve, reject) => {
@@ -89,6 +111,28 @@ export function getRecords(storeName) {
         request.onerror = event => {
             console.error('Error getting all records:', event.target.error);
             reject('Failed to get all records');
+        };
+    });
+}
+
+// Function to delete a record by its key.
+export function deleteRecord(storeName, key) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject('Database is not open.');
+            return;
+        }
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.delete(key);
+
+        request.onsuccess = () => {
+            resolve('Record deleted successfully');
+        };
+
+        request.onerror = event => {
+            console.error('Error deleting record:', event.target.error);
+            reject('Failed to delete record');
         };
     });
 }

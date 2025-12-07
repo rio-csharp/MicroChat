@@ -1,19 +1,22 @@
 ﻿<!-- SidebarComponent.razor -->
 @using System.Globalization
-@using MicroChat.Client.IServices
 @using MicroChat.Client.Models
-@inject IChatService ChatService
+@using MicroChat.Client.Services
+@inject ConversationService ConversationService
+@inject ModelService ModelService
+@implements IDisposable
 
 <div class="sidebar-container">
     <div class="sidebar-header">
-        MicroChat
+        <Icon Height="24" />
+        <span>MicroChat</span>
     </div>
     <div class="chat-list">
-        @foreach (var conversation in Conversations)
+        @foreach (var conversation in ConversationService.Conversations)
         {
             <div class="chat-item" @onclick="() => SelectChat(conversation)">
                 <div class="icon">
-                    <Icon IconSlug="openai" />
+                    <Icon IconSlug="@conversation.AIModel?.Provider.IconSlug" />
                 </div>
                 <div class="chat-info">
                     <div class="chat-title">@conversation.Title</div>
@@ -32,41 +35,49 @@
     [Parameter]
     public EventCallback<Conversation> OnChatSelected { get; set; }
 
-    private List<Conversation> Conversations = new();
-
     protected override async Task OnInitializedAsync()
     {
-        Conversations = await ChatService.GetConversationsAsync();
-        if(Conversations.Count == 0)
+        ConversationService.OnChange += StateHasChanged;
+        await ConversationService.LoadConversationsAsync();
+        if (ConversationService.Conversations.Count == 0)
         {
             await CreateNewChat();
         }
-        SelectChat(Conversations[0]);
+        SelectChat(ConversationService.Conversations[0]);
     }
 
-    private void SelectChat(Conversation chat)
+    public void Dispose()
     {
-        OnChatSelected.InvokeAsync(chat);
+        ConversationService.OnChange -= StateHasChanged;
+    }
+
+
+    private void SelectChat(Conversation conversation)
+    {
+        ConversationService.SelectedConversationId = conversation.Id;
     }
 
     private async Task CreateNewChat()
     {
-        var newConversation = new Conversation
-        {
-            Id = Guid.NewGuid(),
-            Title = "新聊天",
-            Messages = new List<Message>()
+            var models = await ModelService.GetModelsAsync();
+            var firstModel = models?.FirstOrDefault();
+
+            var newConversation = new Conversation
             {
-                new Message
+                Id = Guid.NewGuid(),
+                Title = "新聊天",
+                AIModel = firstModel != null ? new AIModel { Name = firstModel } : null,
+                Messages = new List<Message>()
                 {
-                    Id = Guid.NewGuid(),
-                    Content = "Hello! How can I assist you today?",
-                    Time = DateTime.Now,
-                    Sender = MessageRole.System
+                    new Message
+                    {
+                        Id = Guid.NewGuid(),
+                        Content = "Hello! How can I assist you today?",
+                        Time = DateTime.Now,
+                        Sender = MessageRole.System
+                    }
                 }
-            }
-        };
-        await ChatService.AddConversation(newConversation);
-        Conversations = await ChatService.GetConversationsAsync();
+            };
+            await ConversationService.AddConversationAsync(newConversation);
     }
 }

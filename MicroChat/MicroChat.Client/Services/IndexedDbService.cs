@@ -27,6 +27,12 @@ public class IndexedDbService : IAsyncDisposable
         await module.InvokeVoidAsync("addRecord", storeName, record);
     }
 
+    public async Task UpdateRecord<T>(string storeName, T record)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("updateRecord", storeName, record);
+    }
+
     public async Task<T?> GetRecord<T>(string storeName, object key) where T : class
     {
         var module = await _moduleTask.Value;
@@ -38,6 +44,12 @@ public class IndexedDbService : IAsyncDisposable
     {
         var module = await _moduleTask.Value;
         return await module.InvokeAsync<IEnumerable<T>>("getRecords", storeNames);
+    }
+
+    public async Task DeleteRecord(string storeName, object key)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("deleteRecord", storeName, key);
     }
 
     // Implementing IAsyncDisposable to clean up the JS module reference

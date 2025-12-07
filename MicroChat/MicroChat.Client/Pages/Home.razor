@@ -1,24 +1,27 @@
 ﻿@page "/"
 @using MicroChat.Client.Models
+@using MicroChat.Client.Services
+@inject ConversationService ConversationService
+
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 <div class="layout @(ShowMobileContent ? "show-content" : "")">
     <Sidebar OnChatSelected="HandleChatSelected" />
     <div class="content">
-        <ChatHeader OnBackClicked="HandleBackToList" ShowBackButton="ShowMobileContent" Conversation="selectedConversation" />
+        <ChatHeader @key="ConversationService.SelectedConversation?.Id"
+                    OnBackClicked="HandleBackToList"
+                    ShowBackButton="ShowMobileContent" />
         <div class="chat-area">
-            <ChatPanel Conversation="selectedConversation" />
+            <ChatPanel @key="ConversationService.SelectedConversation?.Id" />
         </div>
     </div>
 </div>
 
 @code {
     private bool ShowMobileContent = false;
-    private Conversation? selectedConversation = null;
 
     private void HandleChatSelected(Conversation conversation)
     {
-        selectedConversation = conversation;
         ShowMobileContent = true;
     }
 

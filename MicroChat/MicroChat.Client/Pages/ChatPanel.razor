@@ -1,10 +1,13 @@
 ﻿@using MicroChat.Client.Models
-@if (Conversation != null)
+@using MicroChat.Client.Services
+@inject ConversationService ConversationService
+@implements IDisposable
+
+@if (ConversationService.SelectedConversation != null)
 {
     <div class="chat-panel">
-        <h2>@Conversation.Title</h2>
         <div class="chat-messages">
-            @foreach(var message in Conversation.Messages)
+            @foreach (var message in ConversationService.SelectedConversation.Messages)
             {
                 <div class="chat-message @(message.Sender == MessageRole.User ? "user-message" : "bot-message")">
                     <div class="message-content">@message.Content</div>
@@ -24,6 +27,13 @@ else
 }
 
 @code {
-    [Parameter]
-    public Conversation? Conversation { get; set; }
+    protected override void OnInitialized()
+    {
+        ConversationService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ConversationService.OnChange -= StateHasChanged;
+    }
 }

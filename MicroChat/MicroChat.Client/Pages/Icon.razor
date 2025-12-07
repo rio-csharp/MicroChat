@@ -1,12 +1,19 @@
 ﻿@code {
-    [Parameter] public string IconSlug { get; set; }
+    [Parameter] public string? IconSlug { get; set; }
     [Parameter] public string Format { get; set; } = "svg"; // svg, png, webp
     [Parameter] public int Height { get; set; } = 32;
 }
 
 @if (Format == "svg")
 {
-    <img height="@Height" src=@($"https://unpkg.com/@lobehub/icons-static-svg@latest/icons/{IconSlug}.svg") alt="@IconSlug" />
+    @if (string.IsNullOrEmpty(IconSlug))
+    {
+        <img height="@Height" src="/favicon.svg" alt="MicroChat" />
+    }
+    else
+    {
+        <img height="@Height" src=@($"https://unpkg.com/@lobehub/icons-static-svg@latest/icons/{IconSlug}.svg") alt="@IconSlug" />
+    }
 }
 else if (Format == "png")
 {

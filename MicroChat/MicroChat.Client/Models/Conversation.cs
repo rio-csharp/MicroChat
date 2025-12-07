@@ -6,4 +6,6 @@ public class Conversation
     public string Title { get; set; } = string.Empty;
     public AIModel? AIModel { get; set; }
     public List<Message> Messages { get; set; } = new();
+
+    // Todo: Add configurations like temperature, max tokens, etc.
 }
