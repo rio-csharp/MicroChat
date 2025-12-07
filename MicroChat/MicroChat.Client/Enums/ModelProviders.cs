@@ -4,7 +4,7 @@
 public enum ModelProviders
 {
     Unknown,
-    
+
     // 国际主流
     OpenAI,          // ChatGPT, GPT-4
     Claude,          // Anthropic Claude
@@ -14,7 +14,7 @@ public enum ModelProviders
     Cohere,          // Cohere Command
     Groq,            // Groq
     Perplexity,      // Perplexity
-    
+
     // 中国主流
     DeepSeek,        // DeepSeek
     Qwen,            // 阿里通义千问
@@ -25,11 +25,11 @@ public enum ModelProviders
     Doubao,          // 字节豆包
     Hunyuan,         // 腾讯混元
     Spark,           // 讯飞星火
-    
+
     // 云平台
     Azure,           // Azure OpenAI
     AWS,             // AWS Bedrock
-    
+
     // 其他
     Other
 }

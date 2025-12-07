@@ -84,6 +84,27 @@
     white-space: nowrap;
 }
 
+.delete-button {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 8px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.chat-item:hover .delete-button {
+    opacity: 1;
+}
+
+.delete-button:hover {
+    color: #f00;
+}
+
 .new-chat-button {
     background-color: #e8e8e8;
     border: none;

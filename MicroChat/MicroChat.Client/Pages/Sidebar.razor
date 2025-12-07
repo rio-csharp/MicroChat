@@ -25,6 +25,7 @@
                 <div class="chat-time" title="@conversation.Messages.Last()?.Time.ToString("f", CultureInfo.CurrentCulture)">
                     @conversation.Messages.Last()?.Time.ToString("HH:mm")
                 </div>
+                <button class="delete-button" @onclick="async (e) => await DeleteChatAsync(e, conversation.Id)" @onclick:stopPropagation="true">×</button>
             </div>
         }
     </div>
@@ -79,5 +80,10 @@
                 }
         };
         await ConversationService.AddConversationAsync(newConversation);
+    }
+
+    private async Task DeleteChatAsync(MouseEventArgs e, Guid conversationId)
+    {
+        await ConversationService.DeleteConversationAsync(conversationId);
     }
 }
