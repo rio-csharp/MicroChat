@@ -33,6 +33,27 @@
             </select>
         }
 
+        <button class="container-toggle-button" @onclick="HandleToggleContainerMode" title="@(IsContainerMode ? "全宽模式" : "容器模式")">
+            @if (IsContainerMode)
+            {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 3L3 3L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 3L21 3L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 16L21 21L16 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 16L3 21L8 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            }
+            else
+            {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 14L4 10L8 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 10L20 14L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 10L12 6L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 14L12 18L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            }
+        </button>
+
         <button class="settings-button" title="设置">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -48,6 +69,12 @@
 
     [Parameter]
     public EventCallback OnBackClicked { get; set; }
+
+    [Parameter]
+    public bool IsContainerMode { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnToggleContainerMode { get; set; }
 
     private List<string> Models { get; set; } = new();
     private string SelectedModelId { get; set; } = string.Empty;
@@ -90,5 +117,10 @@
     private void HandleBackClick()
     {
         OnBackClicked.InvokeAsync();
+    }
+
+    private void HandleToggleContainerMode()
+    {
+        OnToggleContainerMode.InvokeAsync();
     }
 }

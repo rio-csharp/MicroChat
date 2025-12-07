@@ -1,10 +1,21 @@
 ﻿.layout {
     display: flex;
     height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* 容器模式：整个布局居中，有最大宽度 */
+.layout.container-mode {
+    max-width: 1400px;
+    height: calc(100vh - 100px);
+    margin: 50px auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
 }
 
 .content {
-    flex: 1; /* 占满剩余空间 */
+    flex: 1;
     background-color: #fff;
     overflow: hidden;
     display: flex;
@@ -21,6 +32,15 @@
 @media (max-width: 768px) {
     .layout {
         position: relative;
+    }
+
+    /* 移动端禁用容器模式效果 */
+    .layout.container-mode {
+        max-width: none;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .layout .sidebar-container,

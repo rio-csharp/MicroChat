@@ -5,12 +5,14 @@
 
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
-<div class="layout @(ShowMobileContent ? "show-content" : "")">
+<div class="layout @(ShowMobileContent ? "show-content" : "") @(IsContainerMode ? "container-mode" : "")">
     <Sidebar OnChatSelected="HandleChatSelected" />
     <div class="content">
         <ChatHeader @key="ConversationService.SelectedConversation?.Id"
                     OnBackClicked="HandleBackToList"
-                    ShowBackButton="ShowMobileContent" />
+                    ShowBackButton="ShowMobileContent"
+                    IsContainerMode="IsContainerMode"
+                    OnToggleContainerMode="ToggleContainerMode" />
         <div class="chat-area">
             <ChatPanel @key="ConversationService.SelectedConversation?.Id" />
         </div>
@@ -19,6 +21,7 @@
 
 @code {
     private bool ShowMobileContent = false;
+    private bool IsContainerMode = false;
 
     private void HandleChatSelected()
     {
@@ -28,5 +31,10 @@
     private void HandleBackToList()
     {
         ShowMobileContent = false;
+    }
+
+    private void ToggleContainerMode()
+    {
+        IsContainerMode = !IsContainerMode;
     }
 }
