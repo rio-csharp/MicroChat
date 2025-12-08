@@ -80,8 +80,9 @@
     background-color: rgba(0, 0, 0, 0.05);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.9em;
+    font-weight: 500;
 }
 
 .markdown-content ::deep pre {
@@ -188,7 +189,9 @@
 
 .markdown-content ::deep .code-content {
     flex: 1;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .markdown-content ::deep ul,
@@ -368,4 +371,40 @@
     color: #dc3545;
     border-color: rgba(220, 53, 69, 0.3);
     background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+    .message-wrapper {
+        max-width: 95%;
+    }
+
+    .markdown-content ::deep pre {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    .markdown-content ::deep pre code {
+        padding: 12px;
+        font-size: 0.8em;
+    }
+
+    .markdown-content ::deep .code-block-header {
+        padding: 4px 8px;
+    }
+
+    .markdown-content ::deep .code-language {
+        font-size: 0.65rem;
+    }
+
+    .markdown-content ::deep .copy-button {
+        padding: 3px 6px;
+        font-size: 0.65rem;
+    }
+
+    .markdown-content ::deep .line-number {
+        width: 2em;
+        padding-right: 0.5em;
+        font-size: 0.85em;
+    }
 }
