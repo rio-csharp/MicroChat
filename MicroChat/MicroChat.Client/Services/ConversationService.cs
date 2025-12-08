@@ -65,6 +65,28 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
         }
     }
 
+    public async Task<Conversation> CreateNewConversationAsync(AIModel? aiModel = null)
+    {
+        var newConversation = new Conversation
+        {
+            Id = Guid.NewGuid(),
+            Title = "新聊天",
+            AIModel = aiModel,
+            Messages = new List<Message>()
+            {
+                new Message
+                {
+                    Id = Guid.NewGuid(),
+                    Content = "Hello! How can I assist you today?",
+                    Time = DateTime.Now,
+                    Sender = MessageRole.System
+                }
+            }
+        };
+        await AddConversationAsync(newConversation);
+        return newConversation;
+    }
+
     public async Task LoadConversationsAsync()
     {
         Conversations = (await _dbService.GetRecordsAsync<Conversation>(_conversationStore)).ToList();

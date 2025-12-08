@@ -7,7 +7,7 @@
         <div class="chat-messages" id="chat-messages-container">
             @foreach (var message in ConversationService.SelectedConversation.Messages)
             {
-                <MessageItem Message="@message" />
+                <MessageItem @key="message.Id" Message="@message" />
             }
             @if (ConversationService.SelectedConversation.IsStreaming && ConversationService.SelectedConversation.StreamingMessage != null)
             {

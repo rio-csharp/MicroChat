@@ -42,27 +42,18 @@ public partial class Sidebar : IDisposable
         var models = await ModelService.GetModelsAsync();
         var firstModel = models?.FirstOrDefault();
 
-        var newConversation = new Conversation
-        {
-            Id = Guid.NewGuid(),
-            Title = "新聊天",
-            AIModel = firstModel != null ? new AIModel { Id = firstModel, Name = firstModel } : null,
-            Messages = new List<Message>()
-            {
-                new Message
-                {
-                    Id = Guid.NewGuid(),
-                    Content = "Hello! How can I assist you today?",
-                    Time = DateTime.Now,
-                    Sender = MessageRole.System
-                }
-            }
-        };
-        await ConversationService.AddConversationAsync(newConversation);
+        var aiModel = firstModel != null ? new AIModel { Id = firstModel, Name = firstModel } : null;
+        await ConversationService.CreateNewConversationAsync(aiModel);
     }
 
     private async Task DeleteChatAsync(MouseEventArgs e, Guid conversationId)
     {
         await ConversationService.DeleteConversationAsync(conversationId);
+        
+        // If no conversations left, create a new one
+        if (ConversationService.Conversations.Count == 0)
+        {
+            await CreateNewChatAsync();
+        }
     }
 }
