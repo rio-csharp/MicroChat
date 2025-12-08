@@ -1,30 +1,38 @@
 ﻿@using MicroChat.Client.Models
 @using MicroChat.Client.Services
+@using MicroChat.Client.Components
 @using System.Text
+@using Microsoft.JSInterop
 @inject ConversationService ConversationService
 @inject ChatService ChatService
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 @if (ConversationService.SelectedConversation != null)
 {
     <div class="chat-panel">
-        <div class="chat-messages" @ref="_messagesContainer">
+        <div class="chat-messages" id="chat-messages-container">
             @foreach (var message in ConversationService.SelectedConversation.Messages)
             {
-                <div class="chat-message @(message.Sender == MessageRole.User ? "user-message" : "bot-message")">
-                    <div class="message-content">@message.Content</div>
-                    <div class="message-time" title="@message.Time.ToString("f", System.Globalization.CultureInfo.CurrentCulture)">
-                        @message.Time.ToString("HH:mm")
-                    </div>
-                </div>
+                <MessageItem Message="@message" />
             }
             @if (_isStreaming && _streamingContent.Length > 0)
             {
-                <div class="chat-message bot-message streaming">
-                    <div class="message-content">@_streamingContent.ToString()</div>
-                </div>
+                <MessageItem Message="@_streamingMessage" Content="@_streamingContent.ToString()" IsStreaming="true" />
             }
         </div>
+        
+        @if (!_isAtBottom && !_isAtTop)
+        {
+            <button class="scroll-button scroll-to-bottom" @onclick="ScrollToBottomAsync" title="跳转到最新消息">
+                <span class="arrow-down">↓</span>
+            </button>
+            
+            <button class="scroll-button scroll-to-top" @onclick="ScrollToTopAsync" title="跳转到最早消息">
+                <span class="arrow-up">↑</span>
+            </button>
+        }
+        
         <ChatInput IsStreaming="@_isStreaming" OnSendMessage="SendMessageAsync" />
     </div>
 }
@@ -36,14 +44,46 @@ else
 }
 
 @code {
-    private ElementReference _messagesContainer;
     private bool _isStreaming = false;
     private readonly StringBuilder _streamingContent = new();
     private CancellationTokenSource? _cts;
+    private Message _streamingMessage = new() 
+    { 
+        Sender = MessageRole.Assistant, 
+        Time = DateTime.Now,
+        Content = string.Empty
+    };
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<ChatPanel>? _dotNetHelper;
+    private bool _isAtBottom = true;
+    private bool _isAtTop = true;
 
     protected override void OnInitialized()
     {
         ConversationService.OnChange += StateHasChanged;
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ConversationService.SelectedConversation != null)
+        {
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/ChatPanel.razor.js");
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            await Task.Delay(50);
+            await _jsModule.InvokeVoidAsync("init", _dotNetHelper);
+            await ScrollToBottomAsync();
+        }
+    }
+    
+    [JSInvokable]
+    public void UpdateButtonState(bool isAtBottom, bool isAtTop)
+    {
+        if (_isAtBottom != isAtBottom || _isAtTop != isAtTop)
+        {
+            _isAtBottom = isAtBottom;
+            _isAtTop = isAtTop;
+            StateHasChanged();
+        }
     }
 
     private async Task SendMessageAsync(string userMessage)
@@ -102,6 +142,7 @@ else
         {
             _streamingContent.Append(chunk);
             StateHasChanged();
+            await ScrollToBottomAsync();
         }
     }
 
@@ -143,10 +184,28 @@ else
         StateHasChanged();
     }
 
+    private async Task ScrollToBottomAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToBottom");
+        }
+    }
+    
+    private async Task ScrollToTopAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToTop");
+        }
+    }
+
     public void Dispose()
     {
         ConversationService.OnChange -= StateHasChanged;
         _cts?.Cancel();
         _cts?.Dispose();
+        _dotNetHelper?.Dispose();
+        _jsModule?.DisposeAsync();
     }
 }

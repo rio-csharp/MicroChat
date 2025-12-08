@@ -1,0 +1,25 @@
+@using MicroChat.Client.Models
+
+<div class="chat-message @(Message.Sender == MessageRole.User ? "user-message" : "bot-message") @(IsStreaming ? "streaming" : "")">
+    <div class="message-content">@Content</div>
+    <div class="message-time" title="@Message.Time.ToString("f", System.Globalization.CultureInfo.CurrentCulture)">
+        @Message.Time.ToString("HH:mm")
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Message Message { get; set; } = default!;
+
+    [Parameter]
+    public string? Content { get; set; }
+
+    [Parameter]
+    public bool IsStreaming { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        // 如果没有提供自定义内容，使用消息的内容
+        Content ??= Message.Content;
+    }
+}

@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }
 
 .chat-messages {
@@ -11,64 +12,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-}
-
-.chat-message {
-    display: flex;
-    flex-direction: column;
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    word-wrap: break-word;
-    animation: fadeIn 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.user-message {
-    align-self: flex-end;
-    background-color: #007bff;
-    color: white;
-}
-
-.bot-message {
-    align-self: flex-start;
-    background-color: #f1f3f5;
-    color: #212529;
-}
-
-.bot-message.streaming {
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
-}
-
-.message-content {
-    margin-bottom: 4px;
-    white-space: pre-wrap;
-    line-height: 1.5;
-}
-
-.message-time {
-    font-size: 0.75rem;
-    opacity: 0.7;
-    align-self: flex-end;
+    scroll-behavior: smooth;
 }
 
 .chat-panel-empty {
@@ -77,4 +21,60 @@
     justify-content: center;
     height: 100%;
     color: #6c757d;
+}
+
+.scroll-button {
+    position: absolute;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+    z-index: 10;
+    font-size: 20px;
+    opacity: 0;
+    animation: fadeInButton 0.3s ease forwards;
+}
+
+@keyframes fadeInButton {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.scroll-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+}
+
+.scroll-button:active {
+    transform: scale(0.95);
+}
+
+.scroll-to-bottom {
+    bottom: 100px;
+}
+
+.scroll-to-top {
+    bottom: 160px;
+}
+
+.arrow-down,
+.arrow-up {
+    font-weight: bold;
+    line-height: 1;
 }
