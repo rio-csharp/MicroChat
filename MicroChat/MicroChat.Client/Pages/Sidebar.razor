@@ -16,7 +16,7 @@
         {
             <div class="chat-item" @onclick="async () => await SelectChatAsync(conversation.Id)">
                 <div class="icon">
-                    <Icon IconSlug="@conversation.AIModel?.Provider.IconSlug" />
+                    <Icon IconSlug="@conversation.AIModel?.Provider?.IconSlug" />
                 </div>
                 <div class="chat-info">
                     <div class="chat-title">@conversation.Title</div>

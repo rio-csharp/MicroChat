@@ -17,10 +17,10 @@ public class AIModel
         { "chatgpt-", ModelProviders.OpenAI },
         { "o1-", ModelProviders.OpenAI },
         { "o3-", ModelProviders.OpenAI },
+        { "o4-", ModelProviders.OpenAI },
         
         // Claude 系列
         { "claude-", ModelProviders.Claude },
-        { "claude-instant-", ModelProviders.Claude },
         
         // Gemini 系列
         { "gemini-", ModelProviders.Gemini },
@@ -39,7 +39,6 @@ public class AIModel
         
         // Cohere 系列（只保留对话模型）
         { "command-", ModelProviders.Cohere },
-        { "command-r", ModelProviders.Cohere },
         
         // Groq
         { "groq-", ModelProviders.Groq },
@@ -59,9 +58,6 @@ public class AIModel
         
         // 文心一言
         { "ernie-", ModelProviders.Ernie },
-        { "ernie-bot", ModelProviders.Ernie },
-        { "ernie-speed", ModelProviders.Ernie },
-        { "ernie-lite", ModelProviders.Ernie },
         
         // ChatGLM
         { "glm-", ModelProviders.ChatGLM },
@@ -85,7 +81,6 @@ public class AIModel
         { "spark-", ModelProviders.Spark },
         
         // Azure OpenAI
-        { "azure-gpt-", ModelProviders.Azure },
         { "azure-", ModelProviders.Azure },
         
         // AWS Bedrock (托管多种模型)
@@ -116,6 +111,6 @@ public class AIModel
             }
         }
 
-        return ModelProviders.OpenAI;
+        return ModelProviders.Unknown;
     }
 }
