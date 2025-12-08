@@ -60,7 +60,7 @@ builder.Services.AddReverseProxy()
         {
             builderContext.AddRequestTransform(async context =>
             {
-                context.ProxyRequest.Headers.Authorization = 
+                context.ProxyRequest.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 await ValueTask.CompletedTask;
             });

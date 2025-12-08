@@ -4,12 +4,12 @@ namespace MicroChat.Client.Pages;
 
 public partial class Icon
 {
-    [Parameter] 
+    [Parameter]
     public string? IconSlug { get; set; }
-    
-    [Parameter] 
+
+    [Parameter]
     public string Format { get; set; } = "svg"; // svg, png, webp
-    
-    [Parameter] 
+
+    [Parameter]
     public int Height { get; set; } = 32;
 }

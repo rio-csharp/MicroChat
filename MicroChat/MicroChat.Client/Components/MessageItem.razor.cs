@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using MicroChat.Client.Models;
 using MicroChat.Client.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace MicroChat.Client.Components;
 

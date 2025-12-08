@@ -1,5 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using System.Text.Json;
 
 namespace MicroChat.Client.Services;
 
@@ -16,7 +15,7 @@ public sealed class IndexedDbService : IAsyncDisposable
     public IndexedDbService(IJSRuntime jsRuntime)
     {
         ArgumentNullException.ThrowIfNull(jsRuntime);
-        
+
         // Import the JavaScript module lazily with error handling
         _moduleTask = new Lazy<Task<IJSObjectReference>>(async () =>
         {

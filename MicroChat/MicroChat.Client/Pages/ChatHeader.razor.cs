@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Components;
 using MicroChat.Client.Models;
 using MicroChat.Client.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace MicroChat.Client.Pages;
 

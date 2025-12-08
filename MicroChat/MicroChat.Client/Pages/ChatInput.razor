@@ -6,19 +6,18 @@
                   @bind:after="AdjustTextAreaHeight"
                   @onkeydown="HandleKeyDown"
                   placeholder="输入消息..."
-                  disabled="@IsStreaming"
                   rows="1"></textarea>
-        <button class="send-button" @onclick="SendMessage" @disabled="@(IsStreaming || string.IsNullOrWhiteSpace(_inputMessage))" title="@(IsStreaming ? "发送中..." : "发送")">
+        <button class="send-button" @onclick="SendMessage" disabled="@IsStreaming" title="@(IsStreaming ? "发送中..." : "发送")">
             @if (IsStreaming)
             {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
                 </svg>
             }
             else
             {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                 </svg>
             }
         </button>

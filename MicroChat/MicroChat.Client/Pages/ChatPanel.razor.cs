@@ -1,6 +1,6 @@
+using MicroChat.Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using MicroChat.Client.Services;
 
 namespace MicroChat.Client.Pages;
 

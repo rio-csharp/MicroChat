@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MicroChat.Client.Models;
 using MicroChat.Client.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace MicroChat.Client.Pages;
 
@@ -49,7 +49,7 @@ public partial class Sidebar : IDisposable
     private async Task DeleteChatAsync(MouseEventArgs e, Guid conversationId)
     {
         await ConversationService.DeleteConversationAsync(conversationId);
-        
+
         // If no conversations left, create a new one
         if (ConversationService.Conversations.Count == 0)
         {

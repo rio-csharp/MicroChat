@@ -44,7 +44,7 @@ public class StreamingTaskManager
     /// 开始一个新的流式传输任务
     /// </summary>
     public async Task StartStreamingAsync(
-        Conversation conversation, 
+        Conversation conversation,
         string userMessage,
         Func<string, Task>? onCompleted = null,
         Func<string, Task>? onError = null)
@@ -71,10 +71,10 @@ public class StreamingTaskManager
 
         // 在后台启动流式传输任务
         _ = Task.Run(async () => await ProcessStreamingAsync(
-            conversation, 
-            userMessage, 
-            streamingTask, 
-            onCompleted, 
+            conversation,
+            userMessage,
+            streamingTask,
+            onCompleted,
             onError));
     }
 

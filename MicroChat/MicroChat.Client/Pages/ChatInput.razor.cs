@@ -1,8 +1,8 @@
+using MicroChat.Client.Models;
+using MicroChat.Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using MicroChat.Client.Services;
-using MicroChat.Client.Models;
 
 namespace MicroChat.Client.Pages;
 
@@ -33,6 +33,8 @@ public partial class ChatInput
 
     private async Task SendMessage()
     {
+        if (IsStreaming || string.IsNullOrEmpty(_inputMessage))
+            return;
         var conversation = ConversationService.SelectedConversation;
         if (string.IsNullOrWhiteSpace(_inputMessage) || conversation == null)
             return;
@@ -70,7 +72,7 @@ public partial class ChatInput
         };
         conversation.StreamingContent = string.Empty;
         conversation.IsStreaming = true;
-        
+
         // 触发状态更新，让ChatPanel显示“正在思考中”
         await ConversationService.UpdateConversationAsync(conversation);
     }
