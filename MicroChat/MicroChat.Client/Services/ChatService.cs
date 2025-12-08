@@ -20,6 +20,29 @@ public class ChatService
         string userMessage,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ValidateConversation(conversation);
+
+        var messages = BuildChatMessages(conversation, userMessage);
+        var request = CreateChatCompletionRequest(conversation.AIModel!.Id!, messages);
+
+        using var response = await SendHttpRequestAsync(request, cancellationToken);
+
+        await foreach (var content in ProcessStreamResponseAsync(response, cancellationToken))
+        {
+            yield return content;
+        }
+    }
+
+    private static void ValidateConversation(Conversation conversation)
+    {
+        if (conversation.AIModel == null || string.IsNullOrWhiteSpace(conversation.AIModel.Id))
+        {
+            throw new InvalidOperationException("Conversation does not have a valid AI model assigned.");
+        }
+    }
+
+    private static List<ChatMessage> BuildChatMessages(Conversation conversation, string userMessage)
+    {
         var messages = conversation.Messages
             .Select(m => new ChatMessage
             {
@@ -35,13 +58,23 @@ public class ChatService
             Content = userMessage
         });
 
-        var request = new ChatCompletionRequest
+        return messages;
+    }
+
+    private static ChatCompletionRequest CreateChatCompletionRequest(string modelId, List<ChatMessage> messages)
+    {
+        return new ChatCompletionRequest
         {
-            Model = conversation.AIModel?.Id ?? "gpt-4",
+            Model = modelId,
             Messages = messages,
             Stream = true
         };
+    }
 
+    private async Task<HttpResponseMessage> SendHttpRequestAsync(
+        ChatCompletionRequest request,
+        CancellationToken cancellationToken)
+    {
         var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -53,7 +86,7 @@ public class ChatService
             Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
         };
 
-        using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -61,6 +94,13 @@ public class ChatService
             throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
         }
 
+        return response;
+    }
+
+    private static async IAsyncEnumerable<string> ProcessStreamResponseAsync(
+        HttpResponseMessage response,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
 
@@ -70,10 +110,7 @@ public class ChatService
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            if (!line.StartsWith("data: ") || line.Length < 7)
+            if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: ") || line.Length < 7)
                 continue;
 
             var data = line.Substring(6).Trim();
@@ -81,28 +118,29 @@ public class ChatService
             if (data == "[DONE]")
                 break;
 
-            ChatCompletionStreamResponse? streamResponse = null;
-            try
+            var content = TryParseStreamContent(data);
+            if (!string.IsNullOrEmpty(content))
             {
-                streamResponse = JsonSerializer.Deserialize<ChatCompletionStreamResponse>(data, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                yield return content;
             }
-            catch (JsonException)
-            {
-                // 跳过无法解析的行
-                continue;
-            }
+        }
+    }
 
-            if (streamResponse?.Choices != null && streamResponse.Choices.Count > 0)
+    private static string? TryParseStreamContent(string data)
+    {
+        try
+        {
+            var streamResponse = JsonSerializer.Deserialize<ChatCompletionStreamResponse>(data, new JsonSerializerOptions
             {
-                var content = streamResponse.Choices[0]?.Delta?.Content;
-                if (!string.IsNullOrEmpty(content))
-                {
-                    yield return content;
-                }
-            }
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            return streamResponse?.Choices?.FirstOrDefault()?.Delta?.Content;
+        }
+        catch (JsonException)
+        {
+            // 跳过无法解析的行
+            return null;
         }
     }
 }

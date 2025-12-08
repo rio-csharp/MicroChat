@@ -1,5 +1,6 @@
 ﻿@using MicroChat.Client.Models
 @using MicroChat.Client.Services
+@using System.Text
 @inject ConversationService ConversationService
 @inject ChatService ChatService
 @implements IDisposable
@@ -17,10 +18,10 @@
                     </div>
                 </div>
             }
-            @if (_isStreaming && !string.IsNullOrEmpty(_streamingContent))
+            @if (_isStreaming && _streamingContent.Length > 0)
             {
                 <div class="chat-message bot-message streaming">
-                    <div class="message-content">@_streamingContent</div>
+                    <div class="message-content">@_streamingContent.ToString()</div>
                 </div>
             }
         </div>
@@ -37,7 +38,7 @@ else
 @code {
     private ElementReference _messagesContainer;
     private bool _isStreaming = false;
-    private string _streamingContent = string.Empty;
+    private readonly StringBuilder _streamingContent = new();
     private CancellationTokenSource? _cts;
 
     protected override void OnInitialized()
@@ -50,47 +51,33 @@ else
         if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(userMessage))
             return;
 
-        _isStreaming = true;
-        _streamingContent = string.Empty;
-        
-        // 添加用户消息
+        await AddUserMessageAsync(userMessage);
+        await ProcessAiResponseAsync(userMessage);
+    }
+
+    private async Task AddUserMessageAsync(string userMessage)
+    {
         var userMsg = new Message
         {
             Sender = MessageRole.User,
             Content = userMessage,
             Time = DateTime.Now,
-            Model = ConversationService.SelectedConversation.AIModel
+            Model = ConversationService.SelectedConversation!.AIModel
         };
         ConversationService.SelectedConversation.Messages.Add(userMsg);
         await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+    }
 
+    private async Task ProcessAiResponseAsync(string userMessage)
+    {
+        _isStreaming = true;
+        _streamingContent.Clear();
         _cts = new CancellationTokenSource();
         
         try
         {
-            // 流式接收 AI 回复
-            await foreach (var chunk in ChatService.SendMessageStreamAsync(
-                ConversationService.SelectedConversation, 
-                userMessage, 
-                _cts.Token))
-            {
-                _streamingContent += chunk;
-                StateHasChanged();
-            }
-
-            // 流式完成，保存消息
-            if (!string.IsNullOrEmpty(_streamingContent))
-            {
-                var assistantMsg = new Message
-                {
-                    Sender = MessageRole.Assistant,
-                    Content = _streamingContent,
-                    Time = DateTime.Now,
-                    Model = ConversationService.SelectedConversation.AIModel
-                };
-                ConversationService.SelectedConversation.Messages.Add(assistantMsg);
-                await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
-            }
+            await StreamAiResponseAsync(userMessage);
+            await SaveAssistantMessageAsync();
         }
         catch (OperationCanceledException)
         {
@@ -98,25 +85,62 @@ else
         }
         catch (Exception ex)
         {
-            // 显示错误消息
-            var errorMsg = new Message
-            {
-                Sender = MessageRole.Assistant,
-                Content = $"发送失败: {ex.Message}",
-                Time = DateTime.Now,
-                Model = ConversationService.SelectedConversation.AIModel
-            };
-            ConversationService.SelectedConversation.Messages.Add(errorMsg);
-            await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+            await AddErrorMessageAsync(ex.Message);
         }
         finally
         {
-            _isStreaming = false;
-            _streamingContent = string.Empty;
-            _cts?.Dispose();
-            _cts = null;
+            ResetStreamingState();
+        }
+    }
+
+    private async Task StreamAiResponseAsync(string userMessage)
+    {
+        await foreach (var chunk in ChatService.SendMessageStreamAsync(
+            ConversationService.SelectedConversation!, 
+            userMessage, 
+            _cts!.Token))
+        {
+            _streamingContent.Append(chunk);
             StateHasChanged();
         }
+    }
+
+    private async Task SaveAssistantMessageAsync()
+    {
+        if (_streamingContent.Length == 0)
+            return;
+
+        var assistantMsg = new Message
+        {
+            Sender = MessageRole.Assistant,
+            Content = _streamingContent.ToString(),
+            Time = DateTime.Now,
+            Model = ConversationService.SelectedConversation!.AIModel
+        };
+        ConversationService.SelectedConversation.Messages.Add(assistantMsg);
+        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+    }
+
+    private async Task AddErrorMessageAsync(string errorMessage)
+    {
+        var errorMsg = new Message
+        {
+            Sender = MessageRole.Assistant,
+            Content = $"发送失败: {errorMessage}",
+            Time = DateTime.Now,
+            Model = ConversationService.SelectedConversation!.AIModel
+        };
+        ConversationService.SelectedConversation.Messages.Add(errorMsg);
+        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
+    }
+
+    private void ResetStreamingState()
+    {
+        _isStreaming = false;
+        _streamingContent.Clear();
+        _cts?.Dispose();
+        _cts = null;
+        StateHasChanged();
     }
 
     public void Dispose()
