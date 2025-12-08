@@ -1,10 +1,8 @@
 ﻿@using MicroChat.Client.Models
 @using MicroChat.Client.Services
 @using MicroChat.Client.Components
-@using System.Text
 @using Microsoft.JSInterop
 @inject ConversationService ConversationService
-@inject ChatService ChatService
 @inject IJSRuntime JSRuntime
 @implements IDisposable
 
@@ -16,9 +14,14 @@
             {
                 <MessageItem Message="@message" />
             }
-            @if (_isStreaming && _streamingContent.Length > 0)
+            @if (ConversationService.SelectedConversation.IsStreaming && 
+                 !string.IsNullOrEmpty(ConversationService.SelectedConversation.StreamingContent))
             {
-                <MessageItem Message="@_streamingMessage" Content="@_streamingContent.ToString()" IsStreaming="true" />
+                var streamingMsg = ConversationService.SelectedConversation.StreamingMessage!;
+                var streamingContent = ConversationService.SelectedConversation.StreamingContent;
+                <MessageItem Message="@streamingMsg" 
+                             Content="@streamingContent" 
+                             IsStreaming="true" />
             }
         </div>
         
@@ -33,7 +36,8 @@
             </button>
         }
         
-        <ChatInput IsStreaming="@_isStreaming" OnSendMessage="SendMessageAsync" />
+        <ChatInput IsStreaming="@ConversationService.SelectedConversation.IsStreaming" 
+                   OnSendMessage="SendMessageAsync" />
     </div>
 }
 else
@@ -44,23 +48,15 @@ else
 }
 
 @code {
-    private bool _isStreaming = false;
-    private readonly StringBuilder _streamingContent = new();
-    private CancellationTokenSource? _cts;
-    private Message _streamingMessage = new() 
-    { 
-        Sender = MessageRole.Assistant, 
-        Time = DateTime.Now,
-        Content = string.Empty
-    };
     private IJSObjectReference? _jsModule;
     private DotNetObjectReference<ChatPanel>? _dotNetHelper;
     private bool _isAtBottom = true;
     private bool _isAtTop = true;
+    private Guid? _lastRenderedConversationId;
 
     protected override void OnInitialized()
     {
-        ConversationService.OnChange += StateHasChanged;
+        ConversationService.OnChange += OnStateChanged;
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -71,10 +67,28 @@ else
             _dotNetHelper = DotNetObjectReference.Create(this);
             await Task.Delay(50);
             await _jsModule.InvokeVoidAsync("init", _dotNetHelper);
-            await ScrollToBottomAsync();
+            await ScrollToBottomInstantAsync();
+            _lastRenderedConversationId = ConversationService.SelectedConversation.Id;
+        }
+        else if (ConversationService.SelectedConversation != null && 
+                 _lastRenderedConversationId != ConversationService.SelectedConversation.Id)
+        {
+            // 切换了会话，立即滚动到底部（无动画）
+            await ScrollToBottomInstantAsync();
+            _lastRenderedConversationId = ConversationService.SelectedConversation.Id;
+        }
+        else if (ConversationService.SelectedConversation?.IsStreaming == true)
+        {
+            // 流式传输时立即滚动到底部（无动画）
+            await ScrollToBottomInstantAsync();
         }
     }
     
+    private void OnStateChanged()
+    {
+        StateHasChanged();
+    }
+
     [JSInvokable]
     public void UpdateButtonState(bool isAtBottom, bool isAtTop)
     {
@@ -91,97 +105,11 @@ else
         if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(userMessage))
             return;
 
-        await AddUserMessageAsync(userMessage);
-        await ProcessAiResponseAsync(userMessage);
-    }
-
-    private async Task AddUserMessageAsync(string userMessage)
-    {
-        var userMsg = new Message
-        {
-            Sender = MessageRole.User,
-            Content = userMessage,
-            Time = DateTime.Now,
-            Model = ConversationService.SelectedConversation!.AIModel
-        };
-        ConversationService.SelectedConversation.Messages.Add(userMsg);
-        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
-    }
-
-    private async Task ProcessAiResponseAsync(string userMessage)
-    {
-        _isStreaming = true;
-        _streamingContent.Clear();
-        _cts = new CancellationTokenSource();
-        
-        try
-        {
-            await StreamAiResponseAsync(userMessage);
-            await SaveAssistantMessageAsync();
-        }
-        catch (OperationCanceledException)
-        {
-            // 用户取消了请求
-        }
-        catch (Exception ex)
-        {
-            await AddErrorMessageAsync(ex.Message);
-        }
-        finally
-        {
-            ResetStreamingState();
-        }
-    }
-
-    private async Task StreamAiResponseAsync(string userMessage)
-    {
-        await foreach (var chunk in ChatService.SendMessageStreamAsync(
-            ConversationService.SelectedConversation!, 
-            userMessage, 
-            _cts!.Token))
-        {
-            _streamingContent.Append(chunk);
-            StateHasChanged();
-            await ScrollToBottomAsync();
-        }
-    }
-
-    private async Task SaveAssistantMessageAsync()
-    {
-        if (_streamingContent.Length == 0)
-            return;
-
-        var assistantMsg = new Message
-        {
-            Sender = MessageRole.Assistant,
-            Content = _streamingContent.ToString(),
-            Time = DateTime.Now,
-            Model = ConversationService.SelectedConversation!.AIModel
-        };
-        ConversationService.SelectedConversation.Messages.Add(assistantMsg);
-        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
-    }
-
-    private async Task AddErrorMessageAsync(string errorMessage)
-    {
-        var errorMsg = new Message
-        {
-            Sender = MessageRole.Assistant,
-            Content = $"发送失败: {errorMessage}",
-            Time = DateTime.Now,
-            Model = ConversationService.SelectedConversation!.AIModel
-        };
-        ConversationService.SelectedConversation.Messages.Add(errorMsg);
-        await ConversationService.UpdateConversationAsync(ConversationService.SelectedConversation);
-    }
-
-    private void ResetStreamingState()
-    {
-        _isStreaming = false;
-        _streamingContent.Clear();
-        _cts?.Dispose();
-        _cts = null;
-        StateHasChanged();
+        // 使用 ConversationService 发送消息，它会管理流式传输
+        await ConversationService.SendMessageAsync(
+            ConversationService.SelectedConversation.Id, 
+            userMessage
+        );
     }
 
     private async Task ScrollToBottomAsync()
@@ -189,6 +117,14 @@ else
         if (_jsModule != null)
         {
             await _jsModule.InvokeVoidAsync("scrollToBottom");
+        }
+    }
+    
+    private async Task ScrollToBottomInstantAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToBottomInstant");
         }
     }
     
@@ -202,9 +138,7 @@ else
 
     public void Dispose()
     {
-        ConversationService.OnChange -= StateHasChanged;
-        _cts?.Cancel();
-        _cts?.Dispose();
+        ConversationService.OnChange -= OnStateChanged;
         _dotNetHelper?.Dispose();
         _jsModule?.DisposeAsync();
     }

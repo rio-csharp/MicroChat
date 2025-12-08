@@ -66,6 +66,28 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.streaming-indicator {
+    color: #4CAF50;
+    font-size: 10px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.chat-item.streaming {
+    background-color: #f8fff8;
 }
 
 .chat-latest {

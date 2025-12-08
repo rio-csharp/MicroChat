@@ -21,8 +21,19 @@ export function init(dotNetHelper) {
     });
 }
 
-// 滚动到底部
+// 滚动到底部（平滑动画）
 export function scrollToBottom() {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+    
+    container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+
+// 立即滚动到底部（无动画）
+export function scrollToBottomInstant() {
     const container = document.getElementById('chat-messages-container');
     if (!container) return;
     

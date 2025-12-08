@@ -12,7 +12,6 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    scroll-behavior: smooth;
 }
 
 .chat-panel-empty {
@@ -30,10 +29,10 @@
     height: 44px;
     border-radius: 50%;
     border: none;
-    background-color: #007bff;
+    background-color: rgba(108, 117, 125, 0.8);
     color: white;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -56,9 +55,9 @@
 }
 
 .scroll-button:hover {
-    background-color: #0056b3;
+    background-color: rgba(73, 80, 87, 0.95);
     transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .scroll-button:active {

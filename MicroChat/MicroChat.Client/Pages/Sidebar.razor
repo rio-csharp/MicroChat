@@ -14,12 +14,18 @@
     <div class="chat-list">
         @foreach (var conversation in ConversationService.Conversations)
         {
-            <div class="chat-item" @onclick="async () => await SelectChatAsync(conversation.Id)">
+            <div class="chat-item @(conversation.IsStreaming ? "streaming" : "")" @onclick="async () => await SelectChatAsync(conversation.Id)">
                 <div class="icon">
                     <Icon IconSlug="@conversation.AIModel?.Provider?.IconSlug" />
                 </div>
                 <div class="chat-info">
-                    <div class="chat-title">@conversation.Title</div>
+                    <div class="chat-title">
+                        @conversation.Title
+                        @if (conversation.IsStreaming)
+                        {
+                            <span class="streaming-indicator" title="正在接收回复...">●</span>
+                        }
+                    </div>
                     <div class="chat-latest">@conversation.Messages.Last()?.Content</div>
                 </div>
                 <div class="chat-time" title="@conversation.Messages.Last()?.Time.ToString("f", CultureInfo.CurrentCulture)">
