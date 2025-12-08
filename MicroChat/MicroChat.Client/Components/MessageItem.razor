@@ -4,6 +4,7 @@
 @using Microsoft.JSInterop
 @inject MarkdownService MarkdownService
 @inject IJSRuntime JSRuntime
+@inject ConversationService ConversationService
 @implements IAsyncDisposable
 
 @if (Message.Sender == MessageRole.User)
@@ -12,6 +13,20 @@
         <div class="user-time">@Message.Time.ToString("HH:mm")</div>
         <div class="chat-message user-message">
             <div class="message-content">@Content</div>
+        </div>
+        <div class="message-actions">
+            <button class="action-btn" @onclick="CopyMessageAsync" title="复制">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>
+            <button class="action-btn delete-btn" @onclick="DeleteMessageAsync" title="删除">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
         </div>
     </div>
 }
@@ -32,6 +47,23 @@ else
                 @((MarkupString)RenderedContent)
             </div>
         </div>
+        @if (!IsStreaming)
+        {
+            <div class="message-actions">
+                <button class="action-btn" @onclick="CopyMessageAsync" title="复制">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+                <button class="action-btn delete-btn" @onclick="DeleteMessageAsync" title="删除">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+        }
     </div>
 }
 
@@ -77,6 +109,30 @@ else
             {
                 Console.WriteLine($"Error initializing code blocks: {ex.Message}");
             }
+        }
+    }
+
+    private async Task CopyMessageAsync()
+    {
+        try
+        {
+            var contentToCopy = Content ?? Message.Content;
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", contentToCopy);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error copying to clipboard: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteMessageAsync()
+    {
+        if (ConversationService.SelectedConversation != null)
+        {
+            await ConversationService.DeleteMessageAsync(
+                ConversationService.SelectedConversation.Id,
+                Message.Id
+            );
         }
     }
 

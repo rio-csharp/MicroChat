@@ -200,5 +200,23 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
         _streamingTaskManager.OnStreamingStatusChanged += OnStreamingStatusChanged;
     }
 
+    /// <summary>
+    /// 删除指定会话中的消息
+    /// </summary>
+    public async Task DeleteMessageAsync(Guid conversationId, Guid messageId)
+    {
+        var conversation = Conversations.FirstOrDefault(c => c.Id == conversationId);
+        if (conversation != null)
+        {
+            var message = conversation.Messages.FirstOrDefault(m => m.Id == messageId);
+            if (message != null)
+            {
+                conversation.Messages.Remove(message);
+                await UpdateConversationAsync(conversation);
+                NotifyStateChanged();
+            }
+        }
+    }
+
     private void NotifyStateChanged() => OnChange?.Invoke();
 }
