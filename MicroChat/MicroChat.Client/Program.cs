@@ -8,6 +8,7 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<StreamingTaskManager>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<ModelService>();
+builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 var host = builder.Build();

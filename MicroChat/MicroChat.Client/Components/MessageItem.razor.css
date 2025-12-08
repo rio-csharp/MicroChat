@@ -49,6 +49,144 @@
     line-height: 1.5;
 }
 
+/* Markdown 内容样式 */
+.markdown-content {
+    white-space: normal;
+}
+
+.markdown-content ::deep p {
+    margin: 2;
+}
+
+.markdown-content ::deep p:first-child {
+    margin-top: 0;
+}
+
+.markdown-content ::deep p:last-child {
+    margin-bottom: 0;
+}
+
+.markdown-content ::deep h1,
+.markdown-content ::deep h2,
+.markdown-content ::deep h3,
+.markdown-content ::deep h4,
+.markdown-content ::deep h5,
+.markdown-content ::deep h6 {
+    margin: 1em 0 0.5em;
+    font-weight: 600;
+}
+
+.markdown-content ::deep code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.markdown-content ::deep pre {
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.markdown-content ::deep pre code {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 0.875em;
+    line-height: 1.5;
+}
+
+.markdown-content ::deep ul,
+.markdown-content ::deep ol {
+    margin: 0.5em 0;
+    padding-left: 2em;
+}
+
+.markdown-content ::deep li {
+    margin: 0.25em 0;
+}
+
+.markdown-content ::deep blockquote {
+    border-left: 4px solid #dee2e6;
+    padding-left: 1em;
+    margin: 1em 0;
+    color: #6c757d;
+}
+
+.markdown-content ::deep table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.markdown-content ::deep th,
+.markdown-content ::deep td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.markdown-content ::deep th {
+    background-color: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+
+.markdown-content ::deep a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.markdown-content ::deep a:hover {
+    text-decoration: underline;
+}
+
+.markdown-content ::deep hr {
+    border: none;
+    border-top: 1px solid #dee2e6;
+    margin: 1.5em 0;
+}
+
+.markdown-content ::deep img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 代码高亮样式 (ColorCode) */
+.markdown-content ::deep .colorCode {
+    background-color: #282c34;
+    border-radius: 8px;
+}
+
+.markdown-content ::deep .keyword {
+    color: #c678dd;
+}
+
+.markdown-content ::deep .string {
+    color: #98c379;
+}
+
+.markdown-content ::deep .comment {
+    color: #5c6370;
+    font-style: italic;
+}
+
+.markdown-content ::deep .number {
+    color: #d19a66;
+}
+
+.markdown-content ::deep .type {
+    color: #e5c07b;
+}
+
+.markdown-content ::deep .function {
+    color: #61afef;
+}
+
 .user-time {
     font-size: 0.75rem;
     color: #6c757d;

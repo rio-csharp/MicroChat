@@ -1,5 +1,7 @@
 @using MicroChat.Client.Models
 @using MicroChat.Client.Pages
+@using MicroChat.Client.Services
+@inject MarkdownService MarkdownService
 
 @if (Message.Sender == MessageRole.User)
 {
@@ -23,7 +25,9 @@ else
             </div>
         </div>
         <div class="chat-message bot-message @(IsStreaming ? "streaming" : "")">
-            <div class="message-content">@Content</div>
+            <div class="message-content markdown-content">
+                @((MarkupString)RenderedContent)
+            </div>
         </div>
     </div>
 }
@@ -38,9 +42,17 @@ else
     [Parameter]
     public bool IsStreaming { get; set; } = false;
 
+    private string RenderedContent { get; set; } = string.Empty;
+
     protected override void OnParametersSet()
     {
         // 如果没有提供自定义内容，使用消息的内容
         Content ??= Message.Content;
+        
+        // 渲染 Markdown（仅对 AI 消息）
+        if (Message.Sender != MessageRole.User)
+        {
+            RenderedContent = MarkdownService.ToHtml(Content ?? string.Empty);
+        }
     }
 }
