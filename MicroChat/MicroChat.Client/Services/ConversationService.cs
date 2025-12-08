@@ -65,10 +65,12 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
             await _dbService.OpenDbAsync();
             // Assuming a DeleteRecord method exists in IndexedDbService
             await _dbService.DeleteRecordAsync(_conversationStore, conversationId);
+            
             if (SelectedConversationId == conversationId)
             {
                 SelectedConversationId = Conversations.FirstOrDefault()?.Id;
             }
+            
             NotifyStateChanged();
         }
     }
@@ -152,6 +154,19 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
     }
 
     /// <summary>
+    /// 流式传输状态变化回调
+    /// </summary>
+    private void OnStreamingStatusChanged(Guid conversationId, bool isStreaming)
+    {
+        var conversation = Conversations.FirstOrDefault(c => c.Id == conversationId);
+        if (conversation != null)
+        {
+            conversation.IsStreaming = isStreaming;
+            NotifyStateChanged();
+        }
+    }
+
+    /// <summary>
     /// 流式传输错误回调
     /// </summary>
     private async Task OnStreamingErrorAsync(Guid conversationId, string error)
@@ -182,6 +197,7 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
     public void InitializeStreamingEvents()
     {
         _streamingTaskManager.OnStreamingUpdate += OnStreamingUpdate;
+        _streamingTaskManager.OnStreamingStatusChanged += OnStreamingStatusChanged;
     }
 
     private void NotifyStateChanged() => OnChange?.Invoke();
