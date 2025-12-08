@@ -1,10 +1,4 @@
-﻿@code {
-    [Parameter] public string? IconSlug { get; set; }
-    [Parameter] public string Format { get; set; } = "svg"; // svg, png, webp
-    [Parameter] public int Height { get; set; } = 32;
-}
-
-@if (Format == "svg")
+﻿@if (Format == "svg")
 {
     @if (string.IsNullOrEmpty(IconSlug))
     {

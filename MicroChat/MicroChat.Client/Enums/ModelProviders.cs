@@ -12,7 +12,7 @@ public enum ModelProviders
     Meta,            // Llama
     Mistral,         // Mistral AI
     Cohere,          // Cohere Command
-    Grok,            // Groq
+    Grok,            // Grok
     Perplexity,      // Perplexity
 
     // 中国主流

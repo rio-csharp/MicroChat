@@ -125,6 +125,7 @@ public class StreamingTaskManager
                 streamingTask.CancellationTokenSource.Token))
             {
                 streamingTask.Content.Append(chunk);
+                conversation.StreamingContent = streamingTask.Content.ToString();
                 OnStreamingUpdate?.Invoke(conversation.Id);
             }
 

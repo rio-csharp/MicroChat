@@ -1,6 +1,3 @@
-@using MicroChat.Client.Models
-@inject IJSRuntime JSRuntime
-
 <div class="chat-input-area">
     <div class="input-wrapper">
         <textarea @ref="_textArea"
@@ -27,70 +24,3 @@
         </button>
     </div>
 </div>
-
-@code {
-    private ElementReference _textArea;
-    private string _inputMessage = string.Empty;
-
-    [Parameter]
-    public bool IsStreaming { get; set; }
-
-    [Parameter]
-    public EventCallback<string> OnSendMessage { get; set; }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !e.ShiftKey && !IsStreaming && !string.IsNullOrWhiteSpace(_inputMessage))
-        {
-            await SendMessage();
-        }
-    }
-
-    private async Task SendMessage()
-    {
-        if (!string.IsNullOrWhiteSpace(_inputMessage))
-        {
-            var message = _inputMessage.Trim();
-            _inputMessage = string.Empty;
-            await OnSendMessage.InvokeAsync(message);
-            await ResetTextAreaHeight();
-        }
-    }
-
-    private async Task AdjustTextAreaHeight()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("eval", @"
-                const textarea = document.querySelector('.chat-input-area textarea');
-                if (textarea) {
-                    textarea.style.height = 'auto';
-                    const scrollHeight = textarea.scrollHeight;
-                    if (scrollHeight > 200) {
-                        textarea.style.height = '200px';
-                        textarea.classList.add('scrollable');
-                    } else {
-                        textarea.style.height = scrollHeight + 'px';
-                        textarea.classList.remove('scrollable');
-                    }
-                }
-            ");
-        }
-        catch { }
-    }
-
-    private async Task ResetTextAreaHeight()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("eval", @"
-                const textarea = document.querySelector('.chat-input-area textarea');
-                if (textarea) {
-                    textarea.style.height = '36px';
-                    textarea.classList.remove('scrollable');
-                }
-            ");
-        }
-        catch { }
-    }
-}

@@ -1,10 +1,5 @@
-﻿<!-- SidebarComponent.razor -->
-@using System.Globalization
+﻿@using System.Globalization
 @using MicroChat.Client.Models
-@using MicroChat.Client.Services
-@inject ConversationService ConversationService
-@inject ModelService ModelService
-@implements IDisposable
 
 <div class="sidebar-container">
     <div class="sidebar-header">
@@ -37,59 +32,3 @@
     </div>
     <button class="new-chat-button" @onclick="CreateNewChatAsync">＋ 新建聊天</button>
 </div>
-
-@code {
-    [Parameter]
-    public EventCallback OnChatSelected { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        ConversationService.OnChange += StateHasChanged;
-        await ConversationService.LoadConversationsAsync();
-        if (ConversationService.Conversations.Count == 0)
-        {
-            await CreateNewChatAsync();
-        }
-    }
-
-    public void Dispose()
-    {
-        ConversationService.OnChange -= StateHasChanged;
-    }
-
-
-    private async Task SelectChatAsync(Guid conversationId)
-    {
-        ConversationService.SelectedConversationId = conversationId;
-        await OnChatSelected.InvokeAsync();
-    }
-
-    private async Task CreateNewChatAsync()
-    {
-        var models = await ModelService.GetModelsAsync();
-        var firstModel = models?.FirstOrDefault();
-
-        var newConversation = new Conversation
-        {
-            Id = Guid.NewGuid(),
-            Title = "新聊天",
-            AIModel = firstModel != null ? new AIModel { Id = firstModel, Name = firstModel } : null,
-            Messages = new List<Message>()
-                {
-                    new Message
-                    {
-                        Id = Guid.NewGuid(),
-                        Content = "Hello! How can I assist you today?",
-                        Time = DateTime.Now,
-                        Sender = MessageRole.System
-                    }
-                }
-        };
-        await ConversationService.AddConversationAsync(newConversation);
-    }
-
-    private async Task DeleteChatAsync(MouseEventArgs e, Guid conversationId)
-    {
-        await ConversationService.DeleteConversationAsync(conversationId);
-    }
-}

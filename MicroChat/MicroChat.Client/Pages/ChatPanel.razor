@@ -1,10 +1,5 @@
 ﻿@using MicroChat.Client.Models
-@using MicroChat.Client.Services
 @using MicroChat.Client.Components
-@using Microsoft.JSInterop
-@inject ConversationService ConversationService
-@inject IJSRuntime JSRuntime
-@implements IDisposable
 
 @if (ConversationService.SelectedConversation != null)
 {
@@ -14,30 +9,25 @@
             {
                 <MessageItem Message="@message" />
             }
-            @if (ConversationService.SelectedConversation.IsStreaming && 
-                 !string.IsNullOrEmpty(ConversationService.SelectedConversation.StreamingContent))
+            @if (ConversationService.SelectedConversation.IsStreaming && ConversationService.SelectedConversation.StreamingMessage != null)
             {
-                var streamingMsg = ConversationService.SelectedConversation.StreamingMessage!;
-                var streamingContent = ConversationService.SelectedConversation.StreamingContent;
-                <MessageItem Message="@streamingMsg" 
-                             Content="@streamingContent" 
+                <MessageItem Message="@ConversationService.SelectedConversation.StreamingMessage"
                              IsStreaming="true" />
             }
         </div>
-        
+
         @if (!_isAtBottom && !_isAtTop)
         {
             <button class="scroll-button scroll-to-bottom" @onclick="ScrollToBottomAsync" title="跳转到最新消息">
                 <span class="arrow-down">↓</span>
             </button>
-            
+
             <button class="scroll-button scroll-to-top" @onclick="ScrollToTopAsync" title="跳转到最早消息">
                 <span class="arrow-up">↑</span>
             </button>
         }
-        
-        <ChatInput IsStreaming="@ConversationService.SelectedConversation.IsStreaming" 
-                   OnSendMessage="SendMessageAsync" />
+
+        <ChatInput IsStreaming="@ConversationService.SelectedConversation.IsStreaming" />
     </div>
 }
 else
@@ -45,101 +35,4 @@ else
     <div class="chat-panel-empty">
         <h3>请从左侧选择一个聊天</h3>
     </div>
-}
-
-@code {
-    private IJSObjectReference? _jsModule;
-    private DotNetObjectReference<ChatPanel>? _dotNetHelper;
-    private bool _isAtBottom = true;
-    private bool _isAtTop = true;
-    private Guid? _lastRenderedConversationId;
-
-    protected override void OnInitialized()
-    {
-        ConversationService.OnChange += OnStateChanged;
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && ConversationService.SelectedConversation != null)
-        {
-            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/ChatPanel.razor.js");
-            _dotNetHelper = DotNetObjectReference.Create(this);
-            await Task.Delay(50);
-            await _jsModule.InvokeVoidAsync("init", _dotNetHelper);
-            await ScrollToBottomInstantAsync();
-            _lastRenderedConversationId = ConversationService.SelectedConversation.Id;
-        }
-        else if (ConversationService.SelectedConversation != null && 
-                 _lastRenderedConversationId != ConversationService.SelectedConversation.Id)
-        {
-            // 切换了会话，立即滚动到底部（无动画）
-            await ScrollToBottomInstantAsync();
-            _lastRenderedConversationId = ConversationService.SelectedConversation.Id;
-        }
-        else if (ConversationService.SelectedConversation?.IsStreaming == true)
-        {
-            // 流式传输时立即滚动到底部（无动画）
-            await ScrollToBottomInstantAsync();
-        }
-    }
-    
-    private void OnStateChanged()
-    {
-        StateHasChanged();
-    }
-
-    [JSInvokable]
-    public void UpdateButtonState(bool isAtBottom, bool isAtTop)
-    {
-        if (_isAtBottom != isAtBottom || _isAtTop != isAtTop)
-        {
-            _isAtBottom = isAtBottom;
-            _isAtTop = isAtTop;
-            StateHasChanged();
-        }
-    }
-
-    private async Task SendMessageAsync(string userMessage)
-    {
-        if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(userMessage))
-            return;
-
-        // 使用 ConversationService 发送消息，它会管理流式传输
-        await ConversationService.SendMessageAsync(
-            ConversationService.SelectedConversation.Id, 
-            userMessage
-        );
-    }
-
-    private async Task ScrollToBottomAsync()
-    {
-        if (_jsModule != null)
-        {
-            await _jsModule.InvokeVoidAsync("scrollToBottom");
-        }
-    }
-    
-    private async Task ScrollToBottomInstantAsync()
-    {
-        if (_jsModule != null)
-        {
-            await _jsModule.InvokeVoidAsync("scrollToBottomInstant");
-        }
-    }
-    
-    private async Task ScrollToTopAsync()
-    {
-        if (_jsModule != null)
-        {
-            await _jsModule.InvokeVoidAsync("scrollToTop");
-        }
-    }
-
-    public void Dispose()
-    {
-        ConversationService.OnChange -= OnStateChanged;
-        _dotNetHelper?.Dispose();
-        _jsModule?.DisposeAsync();
-    }
 }

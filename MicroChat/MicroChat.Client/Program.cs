@@ -12,9 +12,4 @@ builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 var host = builder.Build();
-
-// 初始化 ConversationService 的流事件
-var conversationService = host.Services.GetRequiredService<ConversationService>();
-conversationService.InitializeStreamingEvents();
-
 await host.RunAsync();
