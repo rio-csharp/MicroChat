@@ -23,7 +23,7 @@ public class ModelProvider
         { ModelProviders.Meta, new ModelProvider { Name = "Meta", IconSlug = "meta-color" } },
         { ModelProviders.Mistral, new ModelProvider { Name = "Mistral", IconSlug = "mistral-color" } },
         { ModelProviders.Cohere, new ModelProvider { Name = "Cohere", IconSlug = "cohere-color" } },
-        { ModelProviders.Groq, new ModelProvider { Name = "Groq", IconSlug = "groq" } },
+        { ModelProviders.Grok, new ModelProvider { Name = "Grok", IconSlug = "grok" } },
         { ModelProviders.Perplexity, new ModelProvider { Name = "Perplexity", IconSlug = "perplexity-color" } },
         
         // 中国主流

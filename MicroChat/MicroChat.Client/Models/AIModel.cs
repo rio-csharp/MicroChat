@@ -40,8 +40,8 @@ public class AIModel
         // Cohere 系列（只保留对话模型）
         { "command-", ModelProviders.Cohere },
         
-        // Groq
-        { "groq-", ModelProviders.Groq },
+        // Grok
+        { "grok-", ModelProviders.Grok },
         
         // Perplexity
         { "pplx-", ModelProviders.Perplexity },
