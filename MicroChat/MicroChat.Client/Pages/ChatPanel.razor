@@ -24,24 +24,7 @@
                 </div>
             }
         </div>
-        <div class="chat-input-area">
-            <textarea @bind="_inputMessage" 
-                      @bind:event="oninput"
-                      @onkeydown="HandleKeyDown"
-                      placeholder="输入消息..."
-                      disabled="@_isStreaming"
-                      rows="3"></textarea>
-            <button @onclick="SendMessageAsync" disabled="@(_isStreaming || string.IsNullOrWhiteSpace(_inputMessage))">
-                @if (_isStreaming)
-                {
-                    <span>发送中...</span>
-                }
-                else
-                {
-                    <span>发送</span>
-                }
-            </button>
-        </div>
+        <ChatInput IsStreaming="@_isStreaming" OnSendMessage="SendMessageAsync" />
     </div>
 }
 else
@@ -53,7 +36,6 @@ else
 
 @code {
     private ElementReference _messagesContainer;
-    private string _inputMessage = string.Empty;
     private bool _isStreaming = false;
     private string _streamingContent = string.Empty;
     private CancellationTokenSource? _cts;
@@ -63,21 +45,11 @@ else
         ConversationService.OnChange += StateHasChanged;
     }
 
-    private async Task HandleKeyDown(KeyboardEventArgs e)
+    private async Task SendMessageAsync(string userMessage)
     {
-        if (e.Key == "Enter" && !e.ShiftKey && !_isStreaming && !string.IsNullOrWhiteSpace(_inputMessage))
-        {
-            await SendMessageAsync();
-        }
-    }
-
-    private async Task SendMessageAsync()
-    {
-        if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(_inputMessage))
+        if (ConversationService.SelectedConversation == null || string.IsNullOrWhiteSpace(userMessage))
             return;
 
-        var userMessage = _inputMessage.Trim();
-        _inputMessage = string.Empty;
         _isStreaming = true;
         _streamingContent = string.Empty;
         
