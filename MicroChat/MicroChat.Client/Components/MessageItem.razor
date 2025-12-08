@@ -1,11 +1,32 @@
 @using MicroChat.Client.Models
+@using MicroChat.Client.Pages
 
-<div class="chat-message @(Message.Sender == MessageRole.User ? "user-message" : "bot-message") @(IsStreaming ? "streaming" : "")">
-    <div class="message-content">@Content</div>
-    <div class="message-time" title="@Message.Time.ToString("f", System.Globalization.CultureInfo.CurrentCulture)">
-        @Message.Time.ToString("HH:mm")
+@if (Message.Sender == MessageRole.User)
+{
+    <div class="message-wrapper user-wrapper">
+        <div class="user-time">@Message.Time.ToString("HH:mm")</div>
+        <div class="chat-message user-message">
+            <div class="message-content">@Content</div>
+        </div>
     </div>
-</div>
+}
+else
+{
+    <div class="message-wrapper bot-wrapper">
+        <div class="bot-header">
+            <div class="bot-icon">
+                <Icon IconSlug="@Message.Model?.Provider?.IconSlug" Height="24" />
+            </div>
+            <div class="bot-info">
+                <span class="bot-model">@(Message.Model?.Name ?? "AI Assistant")</span>
+                <span class="bot-time">@Message.Time.ToString("HH:mm")</span>
+            </div>
+        </div>
+        <div class="chat-message bot-message @(IsStreaming ? "streaming" : "")">
+            <div class="message-content">@Content</div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter, EditorRequired]
