@@ -20,7 +20,6 @@ public partial class ChatPanel : IDisposable
     private bool _isAtBottom = true;
     private bool _isAtTop = true;
     private Guid? _lastRenderedConversationId;
-    private int _lastMessageCount = 0;
 
     protected override void OnInitialized()
     {
@@ -59,17 +58,6 @@ public partial class ChatPanel : IDisposable
         {
             // 流式传输时立即滚动到底部（无动画）
             await ScrollToBottomInstantAsync();
-        }
-        
-        // 检测消息数量变化（流式传输完成后添加了新消息）
-        if (ConversationService.SelectedConversation != null)
-        {
-            var currentMessageCount = ConversationService.SelectedConversation.Messages.Count;
-            if (currentMessageCount > _lastMessageCount)
-            {
-                _lastMessageCount = currentMessageCount;
-                await ScrollToBottomInstantAsync();
-            }
         }
     }
 
