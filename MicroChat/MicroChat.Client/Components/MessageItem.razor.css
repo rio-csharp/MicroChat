@@ -85,20 +85,110 @@
 }
 
 .markdown-content ::deep pre {
-    background-color: #282c34;
-    color: #abb2bf;
-    padding: 16px;
-    border-radius: 8px;
+    background-color: #f6f8fa;
+    color: #24292e;
+    padding: 0;
+    border-radius: 10px;
     overflow-x: auto;
     margin: 1em 0;
+    position: relative;
+    border: 1px solid #d0d7de;
+    overflow: hidden;
+}
+
+.markdown-content ::deep pre.has-header {
+    padding-top: 0;
 }
 
 .markdown-content ::deep pre code {
     background-color: transparent;
-    padding: 0;
+    padding: 16px;
     color: inherit;
     font-size: 0.875em;
     line-height: 1.5;
+    display: block;
+}
+
+/* 代码块头部 */
+.markdown-content ::deep .code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: linear-gradient(to bottom, #fafbfc 0%, #f6f8fa 100%);
+    border-bottom: 1px solid #e1e4e8;
+    backdrop-filter: blur(10px);
+    border-radius: 10px 10px 0 0;
+}
+
+.markdown-content ::deep .code-language {
+    font-size: 0.7rem;
+    color: #6e7781;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    opacity: 0.8;
+}
+
+/* 复制按钮 */
+.markdown-content ::deep .copy-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(27, 31, 36, 0.15);
+    border-radius: 4px;
+    color: #57606a;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    font-weight: 500;
+}
+
+.markdown-content ::deep .copy-button:hover {
+    background-color: #ffffff;
+    border-color: rgba(27, 31, 36, 0.25);
+    color: #24292e;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.markdown-content ::deep .copy-button.copied {
+    color: #1a7f37;
+    border-color: rgba(26, 127, 55, 0.3);
+    background-color: rgba(218, 251, 225, 0.9);
+}
+
+.markdown-content ::deep .copy-button svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.8;
+}
+
+.markdown-content ::deep .copy-button:hover svg {
+    opacity: 1;
+}
+
+/* 代码行样式 */
+.markdown-content ::deep .code-line {
+    display: flex;
+    min-height: 1.5em;
+}
+
+.markdown-content ::deep .line-number {
+    display: inline-block;
+    width: 2.5em;
+    padding-right: 1em;
+    text-align: right;
+    color: #8c959f;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.markdown-content ::deep .code-content {
+    flex: 1;
+    white-space: pre;
 }
 
 .markdown-content ::deep ul,
@@ -158,33 +248,27 @@
 
 /* 代码高亮样式 (ColorCode) */
 .markdown-content ::deep .colorCode {
-    background-color: #282c34;
-    border-radius: 8px;
+    background-color: #f6f8fa;
+    border-radius: 10px;
 }
 
-.markdown-content ::deep .keyword {
-    color: #c678dd;
+.markdown-content ::deep .colorCode-wrapper {
+    margin: 1em 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #d0d7de;
 }
 
-.markdown-content ::deep .string {
-    color: #98c379;
+.markdown-content ::deep .colorCode-wrapper pre {
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    background-color: #f6f8fa;
+    border: none;
 }
 
-.markdown-content ::deep .comment {
-    color: #5c6370;
-    font-style: italic;
-}
-
-.markdown-content ::deep .number {
-    color: #d19a66;
-}
-
-.markdown-content ::deep .type {
-    color: #e5c07b;
-}
-
-.markdown-content ::deep .function {
-    color: #61afef;
+.markdown-content ::deep .colorCode-wrapper pre.has-header {
+    border-radius: 0;
 }
 
 .user-time {

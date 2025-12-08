@@ -1,7 +1,10 @@
 @using MicroChat.Client.Models
 @using MicroChat.Client.Pages
 @using MicroChat.Client.Services
+@using Microsoft.JSInterop
 @inject MarkdownService MarkdownService
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 @if (Message.Sender == MessageRole.User)
 {
@@ -24,7 +27,7 @@ else
                 <span class="bot-time">@Message.Time.ToString("HH:mm")</span>
             </div>
         </div>
-        <div class="chat-message bot-message @(IsStreaming ? "streaming" : "")">
+        <div class="chat-message bot-message @(IsStreaming ? "streaming" : "")" @ref="_messageElement">
             <div class="message-content markdown-content">
                 @((MarkupString)RenderedContent)
             </div>
@@ -43,6 +46,8 @@ else
     public bool IsStreaming { get; set; } = false;
 
     private string RenderedContent { get; set; } = string.Empty;
+    private ElementReference _messageElement;
+    private IJSObjectReference? _codeBlockModule;
 
     protected override void OnParametersSet()
     {
@@ -53,6 +58,41 @@ else
         if (Message.Sender != MessageRole.User)
         {
             RenderedContent = MarkdownService.ToHtml(Content ?? string.Empty);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // 仅对 AI 消息初始化代码块
+        if (Message.Sender != MessageRole.User && !IsStreaming)
+        {
+            try
+            {
+                _codeBlockModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+                    "import", "./js/codeBlock.js");
+                
+                await _codeBlockModule.InvokeVoidAsync("initializeCodeBlocks", _messageElement);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing code blocks: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_codeBlockModule is not null)
+        {
+            try
+            {
+                await _codeBlockModule.InvokeVoidAsync("cleanupCodeBlocks", _messageElement);
+                await _codeBlockModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // 忽略 JS 断开连接的异常
+            }
         }
     }
 }
