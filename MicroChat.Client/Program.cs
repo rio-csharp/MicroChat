@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddScoped<IndexedDbService>();
+builder.Services.AddScoped<LocalStorageService>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<StreamingTaskManager>();
 builder.Services.AddScoped<ConversationService>();

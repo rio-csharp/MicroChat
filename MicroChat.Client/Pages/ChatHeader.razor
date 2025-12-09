@@ -35,8 +35,13 @@
             }
         </button>
 
-        <button class="settings-button" title="设置">
+        <button class="settings-button" @onclick="HandleSettingsClick" title="设置">
             <ChatHeaderIcons Name="settings" Width="20" Height="20" />
         </button>
     </div>
 </div>
+
+@if (ShowSettings)
+{
+    <Settings OnClose="HandleCloseSettings" />
+}

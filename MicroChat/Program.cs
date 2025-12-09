@@ -1,4 +1,5 @@
 using MicroChat.Components;
+using MicroChat.Middlewares;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
@@ -80,6 +81,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -87,6 +89,10 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapReverseProxy();
+app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/proxy"), appBuilder =>
+{
+    appBuilder.UseMiddleware<AccessKeyMiddleware>();
+});
 app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

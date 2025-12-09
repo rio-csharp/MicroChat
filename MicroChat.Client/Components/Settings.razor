@@ -1,0 +1,43 @@
+@namespace MicroChat.Client
+
+<div class="settings-overlay" @onclick="HandleOverlayClick">
+    <div class="settings-modal" @onclick:stopPropagation="true">
+        <div class="settings-header">
+            <h2>设置</h2>
+            <button class="close-button" @onclick="OnClose" title="关闭">×</button>
+        </div>
+        
+        <div class="settings-content">
+            <div class="settings-section">
+                <label for="accessKey" class="setting-label">Access Key</label>
+                <div class="input-group">
+                    <input 
+                        id="accessKey" 
+                        type="@(ShowAccessKey ? "text" : "password")"
+                        class="setting-input" 
+                        @bind="AccessKey" 
+                        placeholder="请输入 Access Key" 
+                    />
+                    <button 
+                        type="button" 
+                        class="toggle-visibility-button" 
+                        @onclick="ToggleAccessKeyVisibility"
+                        title="@(ShowAccessKey ? "隐藏" : "显示")">
+                        @(ShowAccessKey ? "👁️" : "👁️‍🗨️")
+                    </button>
+                </div>
+                <p class="setting-description">访问密钥用于身份验证，将加密存储在本地</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(StatusMessage))
+            {
+                <div class="status-message @StatusClass">@StatusMessage</div>
+            }
+        </div>
+        
+        <div class="settings-footer">
+            <button class="cancel-button" @onclick="OnClose">取消</button>
+            <button class="save-button" @onclick="SaveSettings">保存</button>
+        </div>
+    </div>
+</div>

@@ -9,10 +9,12 @@ namespace MicroChat.Client.Services;
 public class ChatService
 {
     private readonly HttpClient _httpClient;
+    private readonly LocalStorageService _localStorageService;
 
-    public ChatService(HttpClient httpClient)
+    public ChatService(HttpClient httpClient, LocalStorageService localStorageService)
     {
         _httpClient = httpClient;
+        _localStorageService = localStorageService;
     }
 
     public async IAsyncEnumerable<string> SendMessageStreamAsync(
@@ -85,6 +87,13 @@ public class ChatService
         {
             Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
         };
+
+        // Add AccessKey header if available
+        var accessKey = await _localStorageService.GetAccessKeyAsync();
+        if (!string.IsNullOrEmpty(accessKey))
+        {
+            httpRequest.Headers.Add("X-Access-Key", accessKey);
+        }
 
         var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 

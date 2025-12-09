@@ -26,6 +26,7 @@ public partial class ChatHeader : IDisposable
 
     private List<string> Models { get; set; } = new();
     private string SelectedModelId { get; set; } = string.Empty;
+    private bool ShowSettings { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,5 +71,16 @@ public partial class ChatHeader : IDisposable
     private void HandleToggleContainerMode()
     {
         OnToggleContainerMode.InvokeAsync();
+    }
+
+    private void HandleSettingsClick()
+    {
+        ShowSettings = true;
+    }
+
+    private void HandleCloseSettings()
+    {
+        ShowSettings = false;
+        StateHasChanged();
     }
 }
