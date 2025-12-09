@@ -13,22 +13,28 @@ public class AccessKeyMiddleware
     }
     public async Task Invoke(HttpContext context)
     {
-        // 1. 获取正确的访问码
-        var correctCode = _configuration["AccessKey"];
-        // 2. 获取客户端传来的 Header (约定 key 为 "X-Access-Key")
+        // 1. 检查 Header 是否存在
         if (!context.Request.Headers.TryGetValue("X-Access-Key", out var originalCode))
         {
             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
             await context.Response.WriteAsync("Missing Access Key");
             return;
         }
-        // 3. 校验比对
-        if (originalCode != correctCode)
+
+        // 2. 获取配置 (假设格式为 "key1,key2,key3")
+        var validCodesString = _configuration["AccessKey"];
+
+        // 3. 验证逻辑
+        // 如果配置为空，或者 分割后的key列表中不包含用户提供的code
+        if (string.IsNullOrEmpty(validCodesString) ||
+            !validCodesString.Split(',').Any(code => code.Trim() == originalCode))
         {
             context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             await context.Response.WriteAsync("Invalid Access Key");
             return;
         }
+
         await _next(context);
     }
+
 }
