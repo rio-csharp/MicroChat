@@ -1,0 +1,10 @@
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/.toolstarget
+**/.github
+**/node_modules
+**/*.md
