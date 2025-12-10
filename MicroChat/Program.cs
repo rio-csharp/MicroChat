@@ -23,10 +23,29 @@ var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
 var apiKey = builder.Configuration["ApiKey"];
 builder.Services.AddReverseProxy()
     .LoadFromMemory(
-        new[] { new RouteConfig { RouteId = "api-proxy", ClusterId = "api-cluster", Match = new RouteMatch { Path = "/api/proxy/{**catch-all}" } } },
-        new[] { new ClusterConfig { ClusterId = "api-cluster", Destinations = new Dictionary<string, DestinationConfig> { { "destination1", new DestinationConfig { Address = string.IsNullOrWhiteSpace(apiBaseUrl) ? "https://api.openai.com" : apiBaseUrl } } } } }
+        new[] {
+            new RouteConfig {
+                RouteId = "api-proxy",
+                ClusterId = "api-cluster",
+                Match = new RouteMatch { Path = "/api/proxy/{**catch-all}" }
+                // No transforms needed here for simple cases if using AddTransforms below,
+                // BUT the most reliable way for code-based config is adding the transform here directly
+                // or via the fluent API below.
+            }
+        },
+        new[] {
+            new ClusterConfig {
+                ClusterId = "api-cluster",
+                Destinations = new Dictionary<string, DestinationConfig> {
+                    { "destination1", new DestinationConfig { Address = string.IsNullOrWhiteSpace(apiBaseUrl) ? "https://api.openai.com" : apiBaseUrl } }
+                }
+            }
+        }
     )
     .AddTransforms(builderContext => {
+        // 1. Remove the local path prefix (/api/proxy)
+        builderContext.AddPathRemovePrefix("/api/proxy");
+        // 2. Add the API Key if present
         if (!string.IsNullOrWhiteSpace(apiKey))
         {
             builderContext.AddRequestTransform(async context => {
