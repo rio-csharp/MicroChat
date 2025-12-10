@@ -13,7 +13,6 @@ public class StreamingTaskManager
     private readonly ConcurrentDictionary<Guid, StreamingTask> _activeTasks = new();
 
     public event Action<Guid>? OnStreamingUpdate;
-    public event Action<Guid, bool>? OnStreamingStatusChanged;
 
     public StreamingTaskManager(ChatService chatService)
     {
@@ -47,12 +46,12 @@ public class StreamingTaskManager
         Conversation conversation,
         string userMessage,
         Func<string, Task>? onCompleted = null,
-        Func<string, Task>? onError = null)
+        Func<string, string, Task>? onError = null)
     {
         if (conversation.Id == Guid.Empty)
             throw new ArgumentException("Invalid conversation ID", nameof(conversation));
 
-        // 如果该会话已经有正在进行的流式传输，先取消它
+        // 如果该会话已经有正在进行的流式传输，先取消它，理论上不应该发生这种情况
         if (_activeTasks.TryGetValue(conversation.Id, out var existingTask))
         {
             await CancelStreamingAsync(conversation.Id);
@@ -67,7 +66,6 @@ public class StreamingTaskManager
         };
 
         _activeTasks[conversation.Id] = streamingTask;
-        OnStreamingStatusChanged?.Invoke(conversation.Id, true);
 
         // 在后台启动流式传输任务
         _ = Task.Run(async () => await ProcessStreamingAsync(
@@ -87,7 +85,6 @@ public class StreamingTaskManager
         {
             task.CancellationTokenSource.Cancel();
             task.CancellationTokenSource.Dispose();
-            OnStreamingStatusChanged?.Invoke(conversationId, false);
             await Task.CompletedTask;
         }
     }
@@ -104,7 +101,6 @@ public class StreamingTaskManager
         {
             task.CancellationTokenSource.Cancel();
             task.CancellationTokenSource.Dispose();
-            OnStreamingStatusChanged?.Invoke(task.ConversationId, false);
         }
 
         await Task.CompletedTask;
@@ -115,7 +111,7 @@ public class StreamingTaskManager
         string userMessage,
         StreamingTask streamingTask,
         Func<string, Task>? onCompleted,
-        Func<string, Task>? onError)
+        Func<string, string, Task>? onError)
     {
         try
         {
@@ -129,36 +125,29 @@ public class StreamingTaskManager
                 OnStreamingUpdate?.Invoke(conversation.Id);
             }
 
-            // 流式传输完成
-            var finalContent = streamingTask.Content.ToString();
-            _activeTasks.TryRemove(conversation.Id, out _);
-            OnStreamingStatusChanged?.Invoke(conversation.Id, false);
-
-            if (onCompleted != null)
-            {
-                await onCompleted(finalContent);
-            }
+            InvokeOnCompleted();
         }
         catch (OperationCanceledException)
         {
-            // 用户主动取消，不需要特殊处理
-            _activeTasks.TryRemove(conversation.Id, out _);
-            OnStreamingStatusChanged?.Invoke(conversation.Id, false);
+            // 任务被取消，也视为正常完成
+            InvokeOnCompleted();
         }
         catch (Exception ex)
         {
-            // 发生错误
+            var finalContent = streamingTask.Content.ToString();
             _activeTasks.TryRemove(conversation.Id, out _);
-            OnStreamingStatusChanged?.Invoke(conversation.Id, false);
-
-            if (onError != null)
-            {
-                await onError(ex.Message);
-            }
+            onError?.Invoke(finalContent, ex.Message);
         }
         finally
         {
             streamingTask.CancellationTokenSource.Dispose();
+        }
+
+        void InvokeOnCompleted()
+        {
+            var finalContent = streamingTask.Content.ToString();
+            _activeTasks.TryRemove(conversation.Id, out _);
+            onCompleted?.Invoke(finalContent);
         }
     }
 

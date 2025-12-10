@@ -7,7 +7,7 @@
                   @onkeydown="HandleKeyDown"
                   placeholder="输入消息..."
                   rows="1"></textarea>
-        <button class="send-button" @onclick="SendMessage" disabled="@IsStreaming" title="@(IsStreaming ? "发送中..." : "发送")">
+        <button class="send-button" @onclick="SendMessage" title="@(IsStreaming ? "发送中..." : "发送")">
             @if (IsStreaming)
             {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

@@ -2,7 +2,7 @@
 
 namespace MicroChat.Client.Services;
 
-public class ConversationService(IndexedDbService dbService, StreamingTaskManager streamingTaskManager)
+public class ConversationService(IndexedDbService dbService)
 {
     public event Action? OnChange;
     public List<Conversation> Conversations { get; set; } = new();
@@ -22,7 +22,6 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
     }
     public Conversation? SelectedConversation => Conversations.FirstOrDefault(c => c.Id == SelectedConversationId);
     private readonly IndexedDbService _dbService = dbService;
-    private readonly StreamingTaskManager _streamingTaskManager = streamingTaskManager;
     private readonly string _conversationStore = "conversations";
 
     public async Task AddConversationAsync(Conversation conversation)
@@ -70,7 +69,7 @@ public class ConversationService(IndexedDbService dbService, StreamingTaskManage
         var newConversation = new Conversation
         {
             Id = Guid.NewGuid(),
-            Title = "新聊天",
+            Title = "New Chat",
             AIModel = aiModel,
             Messages = new List<Message>()
             {

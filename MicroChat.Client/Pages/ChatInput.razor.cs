@@ -33,11 +33,21 @@ public partial class ChatInput
 
     private async Task SendMessage()
     {
-        if (IsStreaming || string.IsNullOrEmpty(_inputMessage))
-            return;
         var conversation = ConversationService.SelectedConversation;
-        if (string.IsNullOrWhiteSpace(_inputMessage) || conversation == null)
+        if (conversation == null)
+        {
             return;
+        }
+
+        if (IsStreaming)
+        {
+            await StreamingTaskManager.CancelStreamingAsync(conversation.Id);
+            IsStreaming = false;
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_inputMessage))
+            return;
+
 
         var userMessage = _inputMessage.Trim();
         _inputMessage = string.Empty;
@@ -83,7 +93,7 @@ public partial class ChatInput
             conversation,
             userMessage,
             onCompleted: async (content) => await OnStreamingCompleted(conversation.Id, content),
-            onError: async (error) => await OnStreamingError(conversation.Id, error)
+            onError: async (content, error) => await OnStreamingError(conversation.Id, content, error)
         );
     }
 
@@ -92,41 +102,36 @@ public partial class ChatInput
     /// </summary>
     private async Task OnStreamingCompleted(Guid conversationId, string content)
     {
-        var conversation = ConversationService.Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (conversation != null && !string.IsNullOrEmpty(content))
+        var assistantMsg = new Message
         {
-            var assistantMsg = new Message
-            {
-                Sender = MessageRole.Assistant,
-                Content = content,
-                Time = DateTime.Now,
-                Model = conversation.AIModel
-            };
-            conversation.Messages.Add(assistantMsg);
-            conversation.IsStreaming = false;
-            conversation.StreamingContent = string.Empty;
-            conversation.StreamingMessage = null;
-
-            await ConversationService.UpdateConversationAsync(conversation);
-        }
+            Sender = MessageRole.Assistant,
+            Content = content,
+            Time = DateTime.Now
+        };
+        await HandleStreamCompleted(conversationId, assistantMsg);
     }
 
     /// <summary>
     /// 流式传输错误回调
     /// </summary>
-    private async Task OnStreamingError(Guid conversationId, string error)
+    private async Task OnStreamingError(Guid conversationId, string content, string error)
+    {
+        var errorMsg = new Message
+        {
+            Sender = MessageRole.Assistant,
+            Content = $"{content} \n\nError: {error}",
+            Time = DateTime.Now,
+        };
+        await HandleStreamCompleted(conversationId, errorMsg);
+    }
+
+    private async Task HandleStreamCompleted(Guid conversationId, Message message)
     {
         var conversation = ConversationService.Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (conversation != null)
         {
-            var errorMsg = new Message
-            {
-                Sender = MessageRole.Assistant,
-                Content = $"发送失败: {error}",
-                Time = DateTime.Now,
-                Model = conversation.AIModel
-            };
-            conversation.Messages.Add(errorMsg);
+            message.Model = conversation.AIModel;
+            conversation.Messages.Add(message);
             conversation.IsStreaming = false;
             conversation.StreamingContent = string.Empty;
             conversation.StreamingMessage = null;

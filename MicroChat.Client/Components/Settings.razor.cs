@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Components;
 using MicroChat.Client.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace MicroChat.Client;
 
@@ -43,7 +43,7 @@ public partial class Settings
             }
 
             await LocalStorageService.SetAccessKeyAsync(AccessKey);
-            
+
             StatusMessage = "设置已保存";
             StatusClass = "success";
 

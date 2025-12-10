@@ -1,5 +1,4 @@
 using Microsoft.JSInterop;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace MicroChat.Client.Services;
@@ -40,7 +39,7 @@ public class LocalStorageService
         try
         {
             var encodedKey = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", AccessKeyStorageKey);
-            
+
             if (string.IsNullOrEmpty(encodedKey))
             {
                 return null;
