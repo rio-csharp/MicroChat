@@ -1,68 +1,36 @@
 using MicroChat.Components;
-using MicroChat.Middlewares;
+using MicroChat.Middlewares; 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// --- 服务配置 ---
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddDataProtection();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN"; });
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddControllers();
 
-// 从配置读取 API 信息
+// YARP配置保持不变，但去掉 AuthorizationPolicy，因为我们用中间件手动控制
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
 var apiKey = builder.Configuration["ApiKey"];
-
-// 配置 YARP 反向代理（代码配置方式）
 builder.Services.AddReverseProxy()
     .LoadFromMemory(
-        new[]
-        {
-            new RouteConfig
-            {
-                RouteId = "api-proxy",
-                ClusterId = "api-cluster",
-                Match = new RouteMatch
-                {
-                    Path = "/api/proxy/{**catch-all}"
-                },
-                Transforms = new List<IReadOnlyDictionary<string, string>>
-                {
-                    new Dictionary<string, string>
-                    {
-                        { "PathPattern", "{**catch-all}" }
-                    }
-                }
-            }
-        },
-        new[]
-        {
-            new ClusterConfig
-            {
-                ClusterId = "api-cluster",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    {
-                        "destination1",
-                        new DestinationConfig
-                        {
-                            Address = string.IsNullOrWhiteSpace(apiBaseUrl) ? "https://api.openai.com" : apiBaseUrl
-                        }
-                    }
-                }
-            }
-        })
-    .AddTransforms(builderContext =>
-    {
-        // 添加 API Key 到请求头
+        new[] { new RouteConfig { RouteId = "api-proxy", ClusterId = "api-cluster", Match = new RouteMatch { Path = "/api/proxy/{**catch-all}" } } },
+        new[] { new ClusterConfig { ClusterId = "api-cluster", Destinations = new Dictionary<string, DestinationConfig> { { "destination1", new DestinationConfig { Address = string.IsNullOrWhiteSpace(apiBaseUrl) ? "https://api.openai.com" : apiBaseUrl } } } } }
+    )
+    .AddTransforms(builderContext => {
         if (!string.IsNullOrWhiteSpace(apiKey))
         {
-            builderContext.AddRequestTransform(async context =>
-            {
-                context.ProxyRequest.Headers.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            builderContext.AddRequestTransform(async context => {
+                context.ProxyRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 await ValueTask.CompletedTask;
             });
         }
@@ -70,33 +38,33 @@ builder.Services.AddReverseProxy()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseWebAssemblyDebugging();
-}
-else
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+if (app.Environment.IsDevelopment()) { app.UseWebAssemblyDebugging(); }
+else { app.UseExceptionHandler("/Error", true); app.UseHsts(); }
+
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting(); // 1. 路由
 
+// 2. 认证和授权
+app.UseAuthentication();
+app.UseAuthorization();
+
+// 3. 防伪
 app.UseAntiforgery();
 
+// 映射常规端点
 app.MapStaticAssets();
-app.MapReverseProxy();
-app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/proxy"), appBuilder =>
-{
-    appBuilder.UseMiddleware<AccessKeyMiddleware>();
-});
 app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(MicroChat.Client._Imports).Assembly);
+
+// 映射YARP代理，并为其应用一个专用的保护管道
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.UseMiddleware<AccessKeyMiddleware>();
+});
 
 app.Run();
