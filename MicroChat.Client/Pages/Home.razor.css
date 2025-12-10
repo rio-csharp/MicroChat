@@ -1,6 +1,7 @@
 ﻿.layout {
     display: flex;
     height: 100vh;
+    height: 100dvh;
     transition: all 0.3s ease;
 }
 
@@ -8,6 +9,7 @@
 .layout.container-mode {
     max-width: 1400px;
     height: calc(100vh - 100px);
+    height: calc(100dvh - 100px);
     margin: 50px auto;
     border-radius: 12px;
     overflow: hidden;
@@ -38,6 +40,7 @@
     .layout.container-mode {
         max-width: none;
         height: 100vh;
+        height: 100dvh;
         margin: 0;
         border-radius: 0;
         box-shadow: none;
